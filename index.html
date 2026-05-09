@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -10,7 +9,6 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
-
     * {
       margin: 0;
       padding: 0;
@@ -19,11 +17,9 @@
 
     body {
       font-family: Arial, sans-serif;
-      background:
-        radial-gradient(circle at top left, #16213e, #0f172a);
+      background: linear-gradient(135deg, #0f172a, #1e293b);
       color: white;
-      min-height: 100vh;
-      padding: 30px;
+      padding: 24px;
     }
 
     .container {
@@ -31,110 +27,115 @@
       margin: auto;
     }
 
-    .title {
-      font-size: 40px;
-      font-weight: bold;
-      margin-bottom: 30px;
+    h1 {
+      font-size: 42px;
+      margin-bottom: 24px;
     }
 
     .top-grid {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 20px;
-      margin-bottom: 25px;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+      margin-bottom: 24px;
     }
 
-    .card {
+    .stat-card {
       background: rgba(255,255,255,0.08);
       border: 1px solid rgba(255,255,255,0.1);
-      backdrop-filter: blur(14px);
+      padding: 22px;
       border-radius: 20px;
-      padding: 25px;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+      backdrop-filter: blur(12px);
     }
 
-    .small-title {
+    .stat-title {
       color: #cbd5e1;
       font-size: 14px;
       margin-bottom: 10px;
     }
 
-    .big-number {
-      font-size: 32px;
+    .stat-value {
+      font-size: 22px;
       font-weight: bold;
+      line-height: 1.3;
     }
 
-    .green {
-      color: #22c55e;
-    }
-
-    .red {
-      color: #fb7185;
-    }
-
-    .middle-grid {
+    .chart-grid {
       display: grid;
       grid-template-columns: 2fr 1fr;
       gap: 20px;
-      margin-bottom: 25px;
+      margin-bottom: 24px;
+    }
+
+    .chart-card {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 20px;
+      border-radius: 20px;
+      backdrop-filter: blur(12px);
+    }
+
+    .chart-title {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #f8fafc;
+    }
+
+    .fund-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 18px;
+    }
+
+    .fund-card {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 18px;
+      border-radius: 18px;
+      backdrop-filter: blur(12px);
+    }
+
+    .fund-name {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 14px;
+      line-height: 1.4;
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      margin: 8px 0;
+      color: #e2e8f0;
+      font-size: 14px;
+    }
+
+    .allocation-bar {
+      height: 10px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 999px;
+      margin-top: 12px;
+      overflow: hidden;
+    }
+
+    .allocation-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #38bdf8, #22c55e);
+      border-radius: 999px;
     }
 
     canvas {
-      width: 100% !important;
-      height: 320px !important;
+      max-width: 100%;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    th {
-      text-align: left;
-      padding: 15px;
-      color: #94a3b8;
-      font-size: 14px;
-    }
-
-    td {
-      padding: 16px;
-      border-top: 1px solid rgba(255,255,255,0.08);
-    }
-
-    .allocation {
-      margin-top: 15px;
-      font-size: 15px;
-      color: #cbd5e1;
-    }
-
-    .footer {
-      margin-top: 20px;
-      color: #94a3b8;
-      font-size: 14px;
-    }
-
-    @media(max-width: 1000px) {
-
-      .top-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .middle-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media(max-width: 700px) {
-
-      .top-grid {
+    @media(max-width: 900px) {
+      .chart-grid {
         grid-template-columns: 1fr;
       }
 
-      body {
-        padding: 15px;
+      h1 {
+        font-size: 30px;
       }
     }
-
   </style>
 </head>
 
@@ -142,106 +143,45 @@
 
 <div class="container">
 
-  <div class="title">
-    Gift Portfolio Dashboard
-  </div>
+  <h1>Gift Portfolio Dashboard</h1>
 
   <div class="top-grid">
-
-    <div class="card">
-      <div class="small-title">
-        Total Portfolio
-      </div>
-
-      <div class="big-number" id="totalPortfolio">
-        Loading...
-      </div>
+    <div class="stat-card">
+      <div class="stat-title">Total Portfolio</div>
+      <div class="stat-value" id="totalValue">Loading...</div>
     </div>
 
-    <div class="card">
-      <div class="small-title">
-        Number of Funds
-      </div>
-
-      <div class="big-number" id="fundCount">
-        -
-      </div>
+    <div class="stat-card">
+      <div class="stat-title">Number of Funds</div>
+      <div class="stat-value" id="fundCount">-</div>
     </div>
 
-    <div class="card">
-      <div class="small-title">
-        Largest Allocation
-      </div>
-
-      <div class="big-number" id="largestFund">
-        -
-      </div>
+    <div class="stat-card">
+      <div class="stat-title">Largest Allocation</div>
+      <div class="stat-value" id="largestFund">-</div>
     </div>
 
-    <div class="card">
-      <div class="small-title">
-        Last Updated
-      </div>
-
-      <div class="big-number" id="updatedTime">
-        -
-      </div>
+    <div class="stat-card">
+      <div class="stat-title">Last Updated</div>
+      <div class="stat-value" id="todayDate">-</div>
     </div>
-
   </div>
 
-  <div class="middle-grid">
+  <div class="chart-grid">
 
-    <div class="card">
-
-      <div class="small-title">
-        Portfolio Allocation
-      </div>
-
-      <canvas id="allocationChart"></canvas>
-
+    <div class="chart-card">
+      <div class="chart-title">Portfolio Allocation</div>
+      <canvas id="barChart"></canvas>
     </div>
 
-    <div class="card">
-
-      <div class="small-title">
-        Asset Allocation
-      </div>
-
+    <div class="chart-card">
+      <div class="chart-title">Asset Allocation</div>
       <canvas id="donutChart"></canvas>
-
     </div>
 
   </div>
 
-  <div class="card">
-
-    <div class="small-title">
-      Holdings
-    </div>
-
-    <table>
-
-      <thead>
-        <tr>
-          <th>Fund</th>
-          <th>Units</th>
-          <th>NAV</th>
-          <th>Total Value</th>
-          <th>Allocation</th>
-        </tr>
-      </thead>
-
-      <tbody id="tableBody">
-      </tbody>
-
-    </table>
-
-  </div>
-
-  <div class="footer">
-    Connected to Google Sheets
-  </div>
+  <div class="fund-grid" id="fundGrid"></div>
 
 </div>
 
@@ -250,15 +190,28 @@
 const SHEET_URL =
 "https://docs.google.com/spreadsheets/d/11rbwXYqXhJrXG7oWQS3pl5fHiXXWtNpsxgN7TbIc6UQ/gviz/tq?tqx=out:json";
 
-function baht(value) {
+function shortName(name) {
+  return name
+    .replace("UNITED GLOBAL DURABLE EQUITIES FUND M11UGD", "M11UGD")
+    .replace("UNITED GLOBAL BALANCED FUND M10UGBF", "M10UGBF")
+    .replace("UNITED GLOBAL INCOME STRATEGIC BOND FUND M12UGIS", "M12UGIS")
+    .replace("UOB PERMPOONSUB (FIXED INCOME) M02FI", "M02FI")
+    .replace("UOB SMART GOLD FUND M07SG", "M07SG")
+    .replace("SCBRMWORLD(A)", "SCBRMWORLD");
+}
 
-  return Number(value).toLocaleString(
-    "en-US",
-    {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }
-  ) + " THB";
+function formatBaht(value) {
+  return Number(value).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }) + " THB";
+}
+
+function formatNumber(value) {
+  return Number(value).toLocaleString("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 4
+  });
 }
 
 async function loadData() {
@@ -267,75 +220,108 @@ async function loadData() {
 
   const text = await res.text();
 
-  const json = JSON.parse(
-    text.substring(
-      text.indexOf("{"),
-      text.lastIndexOf("}") + 1
-    )
+  const jsonText = text.substring(
+    text.indexOf("{"),
+    text.lastIndexOf("}") + 1
   );
 
-  const rows = json.table.rows;
+  const data = JSON.parse(jsonText);
 
-  let total = 0;
+  const rows = data.table.rows;
 
-  let labels = [];
-  let values = [];
+  const labels = [];
+  const values = [];
 
-  let tableHTML = "";
-
+  let totalPortfolio = 0;
   let largestFund = "";
-  let largestAllocation = 0;
+  let largestValue = 0;
 
-  rows.forEach(r => {
+  const fundGrid =
+    document.getElementById("fundGrid");
 
-    const fund = r.c[0]?.v || "";
-    const units = r.c[1]?.v || 0;
-    const nav = r.c[2]?.v || 0;
-    const totalValue = r.c[3]?.v || 0;
-    const allocation = r.c[4]?.f || "";
+  fundGrid.innerHTML = "";
 
-    total += totalValue;
+  rows.forEach(row => {
 
-    labels.push(fund);
-    values.push(totalValue);
+    const fund =
+      row.c[0]?.v || "";
 
-    const allocNumber =
-      parseFloat(allocation.replace("%",""));
+    const units =
+      row.c[1]?.v || 0;
 
-    if (allocNumber > largestAllocation) {
+    const nav =
+      row.c[2]?.v || 0;
 
-      largestAllocation = allocNumber;
+    const totalValue =
+      row.c[3]?.v || 0;
+
+    const allocationText =
+      row.c[4]?.f || "";
+
+    const allocationValue =
+      (row.c[4]?.v || 0) * 100;
+
+    totalPortfolio += totalValue;
+
+    if (totalValue > largestValue) {
+      largestValue = totalValue;
       largestFund = fund;
     }
 
-    tableHTML += `
-      <tr>
-        <td>${fund}</td>
-        <td>${units.toLocaleString()}</td>
-        <td>${nav}</td>
-        <td class="green">${baht(totalValue)}</td>
-        <td>${allocation}</td>
-      </tr>
+    labels.push(shortName(fund));
+    values.push(totalValue);
+
+    fundGrid.innerHTML += `
+      <div class="fund-card">
+
+        <div class="fund-name">
+          ${shortName(fund)}
+        </div>
+
+        <div class="row">
+          <span>Units</span>
+          <strong>${formatNumber(units)}</strong>
+        </div>
+
+        <div class="row">
+          <span>NAV</span>
+          <strong>${formatNumber(nav)}</strong>
+        </div>
+
+        <div class="row">
+          <span>Total Value</span>
+          <strong>${formatBaht(totalValue)}</strong>
+        </div>
+
+        <div class="row">
+          <span>Allocation</span>
+          <strong>${allocationText}</strong>
+        </div>
+
+        <div class="allocation-bar">
+          <div class="allocation-fill"
+            style="width:${allocationValue}%">
+          </div>
+        </div>
+
+      </div>
     `;
   });
 
-  document.getElementById("tableBody").innerHTML =
-    tableHTML;
+  document.getElementById("totalValue")
+    .innerHTML = formatBaht(totalPortfolio);
 
-  document.getElementById("totalPortfolio").innerHTML =
-    baht(total);
+  document.getElementById("fundCount")
+    .innerHTML = rows.length;
 
-  document.getElementById("fundCount").innerHTML =
-    rows.length;
+  document.getElementById("largestFund")
+    .innerHTML = shortName(largestFund);
 
-  document.getElementById("largestFund").innerHTML =
-    largestFund;
-
-  document.getElementById("updatedTime").innerHTML =
-    new Date().toLocaleDateString();
+  document.getElementById("todayDate")
+    .innerHTML = new Date().toLocaleDateString();
 
   new Chart(
-    document.getElementById("allocationChart"),
+    document.getElementById("barChart"),
     {
       type: "bar",
 
@@ -344,40 +330,30 @@ async function loadData() {
 
         datasets: [{
           label: "Portfolio Value",
-
           data: values,
-
-          borderRadius: 12
+          borderRadius: 10
         }]
       },
 
       options: {
-
         plugins: {
           legend: {
-            display: false
+            labels: {
+              color: "white"
+            }
           }
         },
 
         scales: {
+          x: {
+            ticks: {
+              color: "white"
+            }
+          },
 
           y: {
             ticks: {
               color: "white"
-            },
-
-            grid: {
-              color: "rgba(255,255,255,0.08)"
-            }
-          },
-
-          x: {
-            ticks: {
-              color: "white"
-            },
-
-            grid: {
-              display: false
             }
           }
         }
@@ -391,7 +367,6 @@ async function loadData() {
       type: "doughnut",
 
       data: {
-
         labels: labels,
 
         datasets: [{
@@ -400,9 +375,7 @@ async function loadData() {
       },
 
       options: {
-
         plugins: {
-
           legend: {
             labels: {
               color: "white"
