@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Gift Portfolio Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f4f6;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #111827;
+    }
+
+    .summary {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      font-size: 22px;
+      font-weight: bold;
+    }
+
+    .card {
+      background: white;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+    }
+
+    .fund {
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .row {
+      margin: 4px 0;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Gift Portfolio Dashboard</h1>
+
+  <div class="summary" id="summary">Loading...</div>
+
+  <div id="dashboard"></div>
+
+  <script>
+    const SHEET_URL =
+      "https://docs.google.com/spreadsheets/d/11rbwXYqXhJrXG7oWQS3pl5fHiXXWtNpsxgN7TbIc6UQ/gviz/tq?tqx=out:json";
+
+    function formatBaht(value) {
+      return Number(value).toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }) + " THB";
+    }
+
+    function formatNumber(value) {
+      return Number(value).toLocaleString("en-US", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 4
+      });
+    }
+
+    async function loadDashboard() {
+      const res = await fetch(SHEET_URL);
+      const text = await res.text();
+
+      const jsonText = text.substring(
+        text.indexOf("{"),
+        text.lastIndexOf("}") + 1
+      );
+
+      const data = JSON.parse(jsonText);
+      const rows = data.table.rows;
+
+      let totalPortfolio = 0;
+      let html = "";
+
+      rows.forEach(row => {
+        const fund = row.c[0]?.v || "";
+        const units = row.c[1]?.v || 0;
+        const nav = row.c[2]?.v || 0;
+        const totalValue = row.c[3]?.v || 0;
+        const allocationText = row.c[4]?.f || "";
+
+        totalPortfolio += totalValue;
+
+        html += `
+          <div class="card">
+            <div class="fund">${fund}</div>
+            <div class="row">Units: ${formatNumber(units)}</div>
+            <div class="row">NAV: ${formatNumber(nav)}</div>
+            <div class="row">Total Value: ${formatBaht(totalValue)}</div>
+            <div class="row">Allocation: ${allocationText}</div>
+          </div>
+        `;
+      });
+
+      document.getElementById("summary").innerHTML =
+        "Total Portfolio: " + formatBaht(totalPortfolio);
+
+      document.getElementById("dashboard").innerHTML = html;
+    }
+
+    loadDashboard();
+  </script>
+
+</body>
+</html>
