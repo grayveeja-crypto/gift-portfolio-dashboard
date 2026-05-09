@@ -1,382 +1,392 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-  <title>Gift Portfolio Dashboard</title>
+<title>Gift Portfolio Dashboard</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+<style>
 
-    body {
-      font-family: Arial, sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(56,189,248,0.18), transparent 35%),
-        linear-gradient(135deg, #020617, #0f172a 45%, #1e293b);
-      color: white;
-      padding: 24px;
-      min-height: 100vh;
-    }
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
 
-    .container {
-      max-width: 1400px;
-      margin: auto;
-    }
+body{
+  font-family:Arial,sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(59,130,246,0.25), transparent 35%),
+    linear-gradient(135deg,#020617,#0f172a,#1e293b);
+  color:white;
+  padding:24px;
+  min-height:100vh;
+}
 
-    .header {
-      margin-bottom: 26px;
-    }
+.container{
+  max-width:1400px;
+  margin:auto;
+}
 
-    .header h1 {
-      font-size: 42px;
-      margin-bottom: 8px;
-    }
+.header{
+  margin-bottom:26px;
+}
 
-    .header p {
-      color: #cbd5e1;
-      font-size: 15px;
-    }
+.header h1{
+  font-size:42px;
+  margin-bottom:8px;
+}
 
-    .top-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 18px;
-      margin-bottom: 24px;
-    }
+.header p{
+  color:#cbd5e1;
+}
 
-    .stat-card,
-    .chart-card,
-    .fund-card {
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 22px;
-      backdrop-filter: blur(14px);
-      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
-    }
+.top-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:18px;
+  margin-bottom:24px;
+}
 
-    .stat-card {
-      padding: 22px;
-      min-height: 125px;
-    }
+.card{
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:22px;
+  backdrop-filter:blur(14px);
+  box-shadow:0 20px 40px rgba(0,0,0,0.25);
+}
 
-    .stat-title {
-      color: #cbd5e1;
-      font-size: 13px;
-      margin-bottom: 10px;
-    }
+.stat-card{
+  padding:22px;
+}
 
-    .stat-value {
-      font-size: 24px;
-      font-weight: bold;
-      line-height: 1.25;
-    }
+.stat-title{
+  color:#cbd5e1;
+  font-size:13px;
+  margin-bottom:10px;
+}
 
-    .stat-sub {
-      margin-top: 8px;
-      font-size: 13px;
-      color: #94a3b8;
-    }
+.stat-value{
+  font-size:24px;
+  font-weight:bold;
+}
 
-    .chart-grid {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 20px;
-      margin-bottom: 24px;
-    }
+.stat-sub{
+  margin-top:8px;
+  color:#94a3b8;
+  font-size:13px;
+}
 
-    .chart-card {
-      padding: 20px;
-      min-height: 360px;
-    }
+.green{
+  color:#22c55e;
+}
 
-    .chart-title {
-      font-size: 18px;
-      margin-bottom: 16px;
-      color: #f8fafc;
-      font-weight: bold;
-    }
+.red{
+  color:#ef4444;
+}
 
-    .fund-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
-      gap: 18px;
-      margin-top: 24px;
-    }
+.chart-grid{
+  display:grid;
+  grid-template-columns:2fr 1fr;
+  gap:20px;
+  margin-bottom:24px;
+}
 
-    .fund-card {
-      padding: 18px;
-    }
+.chart-card{
+  padding:20px;
+}
 
-    .fund-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
+.chart-title{
+  font-size:18px;
+  margin-bottom:18px;
+  font-weight:bold;
+}
 
-    .fund-name {
-      font-size: 18px;
-      font-weight: bold;
-      line-height: 1.3;
-    }
+.fund-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:18px;
+}
 
-    .badge {
-      font-size: 11px;
-      padding: 5px 8px;
-      border-radius: 999px;
-      white-space: nowrap;
-      background: rgba(255,255,255,0.12);
-      color: #e2e8f0;
-    }
+.fund-card{
+  padding:18px;
+}
 
-    .row {
-      display: flex;
-      justify-content: space-between;
-      margin: 9px 0;
-      color: #e2e8f0;
-      font-size: 14px;
-    }
+.fund-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  margin-bottom:14px;
+  gap:10px;
+}
 
-    .row strong {
-      color: white;
-    }
+.fund-name{
+  font-size:18px;
+  font-weight:bold;
+  line-height:1.3;
+}
 
-    .allocation-bar {
-      height: 10px;
-      background: rgba(255,255,255,0.14);
-      border-radius: 999px;
-      margin-top: 14px;
-      overflow: hidden;
-    }
+.badge{
+  padding:5px 8px;
+  border-radius:999px;
+  font-size:11px;
+  background:rgba(255,255,255,0.12);
+}
 
-    .allocation-fill {
-      height: 100%;
-      border-radius: 999px;
-    }
+.row{
+  display:flex;
+  justify-content:space-between;
+  margin:9px 0;
+  color:#e2e8f0;
+  font-size:14px;
+}
 
-    .footer {
-      color: #94a3b8;
-      text-align: center;
-      margin-top: 28px;
-      font-size: 13px;
-    }
+.allocation-bar{
+  height:10px;
+  background:rgba(255,255,255,0.12);
+  border-radius:999px;
+  overflow:hidden;
+  margin-top:12px;
+}
 
-    canvas {
-      max-width: 100%;
-    }
+.fill{
+  height:100%;
+  border-radius:999px;
+}
 
-    @media(max-width: 900px) {
-      body {
-        padding: 16px;
-      }
+.footer{
+  margin-top:28px;
+  text-align:center;
+  color:#94a3b8;
+  font-size:13px;
+}
 
-      .header h1 {
-        font-size: 30px;
-      }
+@media(max-width:900px){
 
-      .chart-grid {
-        grid-template-columns: 1fr;
-      }
+  body{
+    padding:16px;
+  }
 
-      .chart-card {
-        min-height: 300px;
-      }
+  .chart-grid{
+    grid-template-columns:1fr;
+  }
 
-      .stat-value {
-        font-size: 21px;
-      }
-    }
-  </style>
+  .header h1{
+    font-size:30px;
+  }
+
+}
+
+</style>
 </head>
 
 <body>
 
 <div class="container">
 
-  <div class="header">
-    <h1>Gift Portfolio Dashboard</h1>
-    <p>Live investment dashboard connected to Google Sheets</p>
-  </div>
+<div class="header">
+<h1>Gift Portfolio Dashboard</h1>
+<p>Live investment dashboard connected to Google Sheets</p>
+</div>
 
-  <div class="top-grid">
-    <div class="stat-card">
-      <div class="stat-title">Total Portfolio</div>
-      <div class="stat-value" id="totalValue">Loading...</div>
-      <div class="stat-sub">Current market value</div>
-    </div>
+<div class="top-grid">
 
-    <div class="stat-card">
-      <div class="stat-title">Number of Funds</div>
-      <div class="stat-value" id="fundCount">-</div>
-      <div class="stat-sub">Active holdings</div>
-    </div>
+<div class="card stat-card">
+<div class="stat-title">Total Portfolio</div>
+<div class="stat-value" id="totalPortfolio">Loading...</div>
+<div class="stat-sub">Current market value</div>
+</div>
 
-    <div class="stat-card">
-      <div class="stat-title">Largest Holding</div>
-      <div class="stat-value" id="largestFund">-</div>
-      <div class="stat-sub" id="largestPct">-</div>
-    </div>
+<div class="card stat-card">
+<div class="stat-title">Daily Movement</div>
+<div class="stat-value" id="dailyMovement">-</div>
+<div class="stat-sub">Weighted portfolio return</div>
+</div>
 
-    <div class="stat-card">
-      <div class="stat-title">Risk Split</div>
-      <div class="stat-value" id="riskSplit">-</div>
-      <div class="stat-sub">Equity / Defensive</div>
-    </div>
-  </div>
+<div class="card stat-card">
+<div class="stat-title">Largest Holding</div>
+<div class="stat-value" id="largestHolding">-</div>
+<div class="stat-sub" id="largestPct">-</div>
+</div>
 
-  <div class="chart-grid">
-    <div class="chart-card">
-      <div class="chart-title">Portfolio Value by Fund</div>
-      <canvas id="barChart"></canvas>
-    </div>
+<div class="card stat-card">
+<div class="stat-title">Funds</div>
+<div class="stat-value" id="fundCount">-</div>
+<div class="stat-sub">Current holdings</div>
+</div>
 
-    <div class="chart-card">
-      <div class="chart-title">Asset Class Allocation</div>
-      <canvas id="assetChart"></canvas>
-    </div>
-  </div>
+</div>
 
-  <div class="chart-card">
-    <div class="chart-title">Fund Details</div>
-    <div class="fund-grid" id="fundGrid"></div>
-  </div>
+<div class="chart-grid">
 
-  <div class="footer">
-    Data updates automatically when your Google Sheet is updated.
-  </div>
+<div class="card chart-card">
+<div class="chart-title">Portfolio Allocation</div>
+<canvas id="barChart"></canvas>
+</div>
+
+<div class="card chart-card">
+<div class="chart-title">Asset Allocation</div>
+<canvas id="pieChart"></canvas>
+</div>
+
+</div>
+
+<div class="fund-grid" id="fundGrid"></div>
+
+<div class="footer">
+Dashboard updates automatically when Google Sheets changes.
+</div>
 
 </div>
 
 <script>
+
 const SHEET_URL =
 "https://docs.google.com/spreadsheets/d/11rbwXYqXhJrXG7oWQS3pl5fHiXXWtNpsxgN7TbIc6UQ/gviz/tq?tqx=out:json";
 
-function shortName(name) {
+function shortName(name){
   return String(name)
-    .replace("UNITED GLOBAL DURABLE EQUITIES FUND M11UGD", "M11UGD")
-    .replace("UNITED GLOBAL BALANCED FUND M10UGBF", "M10UGBF")
-    .replace("UNITED GLOBAL INCOME STRATEGIC BOND FUND M12UGIS", "M12UGIS")
-    .replace("UOB PERMPOONSUB (FIXED INCOME) M02FI", "M02FI")
-    .replace("UOB SMART GOLD FUND M07SG", "M07SG")
-    .replace("SCBRMWORLD(A)", "SCBRMWORLD");
+    .replace("UNITED GLOBAL DURABLE EQUITIES FUND M11UGD","M11UGD")
+    .replace("UNITED GLOBAL BALANCED FUND M10UGBF","M10UGBF")
+    .replace("UNITED GLOBAL INCOME STRATEGIC BOND FUND M12UGIS","M12UGIS")
+    .replace("UOB PERMPOONSUB (FIXED INCOME) M02FI","M02FI")
+    .replace("UOB SMART GOLD FUND M07SG","M07SG")
+    .replace("SCBRMWORLD(A)","SCBRMWORLD");
 }
 
-function getAssetClass(name) {
-  const n = String(name).toUpperCase();
+function assetClass(name){
 
-  if (n.includes("GOLD")) return "Gold";
-  if (n.includes("BOND") || n.includes("FIXED INCOME") || n.includes("SFF")) return "Fixed Income";
-  if (n.includes("BALANCED")) return "Balanced";
-  if (n.includes("S&P") || n.includes("WORLD") || n.includes("EQUITIES") || n.includes("RM2")) return "Equity";
+  const n = name.toUpperCase();
+
+  if(n.includes("GOLD")) return "Gold";
+  if(n.includes("BOND") || n.includes("FIXED")) return "Fixed Income";
+  if(n.includes("BALANCED")) return "Balanced";
+  if(n.includes("WORLD") || n.includes("S&P") || n.includes("EQUITIES") || n.includes("RM2"))
+    return "Equity";
 
   return "Other";
 }
 
-function assetColor(asset) {
-  if (asset === "Equity") return "#38bdf8";
-  if (asset === "Fixed Income") return "#22c55e";
-  if (asset === "Gold") return "#facc15";
-  if (asset === "Balanced") return "#a78bfa";
+function assetColor(asset){
+
+  if(asset==="Equity") return "#38bdf8";
+  if(asset==="Fixed Income") return "#22c55e";
+  if(asset==="Gold") return "#facc15";
+  if(asset==="Balanced") return "#a78bfa";
+
   return "#94a3b8";
 }
 
-function formatBaht(value) {
-  return Number(value).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+function formatBaht(v){
+  return Number(v).toLocaleString("en-US",{
+    minimumFractionDigits:2,
+    maximumFractionDigits:2
   }) + " THB";
 }
 
-function formatNumber(value) {
-  return Number(value).toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 4
-  });
+function formatPct(v){
+  return Number(v).toFixed(2) + "%";
 }
 
-function formatPercent(value) {
-  return Number(value).toFixed(2) + "%";
-}
+async function loadData(){
 
-async function loadData() {
   const res = await fetch(SHEET_URL);
+
   const text = await res.text();
 
-  const jsonText = text.substring(
-    text.indexOf("{"),
-    text.lastIndexOf("}") + 1
-  );
+  const jsonText =
+    text.substring(
+      text.indexOf("{"),
+      text.lastIndexOf("}") + 1
+    );
 
   const data = JSON.parse(jsonText);
+
   const rows = data.table.rows;
 
-  const fundLabels = [];
-  const fundValues = [];
-  const fundColors = [];
+  const labels = [];
+  const values = [];
+  const colors = [];
 
-  const assetTotals = {
-    Equity: 0,
-    "Fixed Income": 0,
-    Gold: 0,
-    Balanced: 0,
-    Other: 0
-  };
+  const assetTotals = {};
 
   let totalPortfolio = 0;
+  let weightedReturn = 0;
+
   let largestFund = "";
   let largestValue = 0;
-  let largestAllocationText = "";
+  let largestAllocation = "";
 
-  const fundGrid = document.getElementById("fundGrid");
-  fundGrid.innerHTML = "";
+  const grid =
+    document.getElementById("fundGrid");
 
-  rows.forEach(row => {
+  grid.innerHTML = "";
+
+  rows.forEach(row=>{
+
     const fund = row.c[0]?.v || "";
     const units = row.c[1]?.v || 0;
     const nav = row.c[2]?.v || 0;
     const totalValue = row.c[3]?.v || 0;
     const allocationText = row.c[4]?.f || "";
-    const allocationValue = (row.c[4]?.v || 0) * 100;
+    const allocationRaw = row.c[4]?.v || 0;
 
-    const asset = getAssetClass(fund);
-    const color = assetColor(asset);
+    const dailyReturn =
+  (row.c[5]?.v || 0);
+
+    const asset =
+      assetClass(fund);
+
+    const color =
+      assetColor(asset);
 
     totalPortfolio += totalValue;
-    assetTotals[asset] += totalValue;
 
-    if (totalValue > largestValue) {
+    weightedReturn +=
+      allocationRaw * dailyReturn;
+
+    assetTotals[asset] =
+      (assetTotals[asset] || 0) + totalValue;
+
+    if(totalValue > largestValue){
       largestValue = totalValue;
       largestFund = fund;
-      largestAllocationText = allocationText;
+      largestAllocation = allocationText;
     }
 
-    fundLabels.push(shortName(fund));
-    fundValues.push(totalValue);
-    fundColors.push(color);
+    labels.push(shortName(fund));
+    values.push(totalValue);
+    colors.push(color);
 
-    fundGrid.innerHTML += `
-      <div class="fund-card">
+    const returnClass =
+      dailyReturn >= 0 ? "green" : "red";
+
+    grid.innerHTML += `
+      <div class="card fund-card">
+
         <div class="fund-top">
-          <div class="fund-name">${shortName(fund)}</div>
-          <div class="badge">${asset}</div>
+
+          <div class="fund-name">
+            ${shortName(fund)}
+          </div>
+
+          <div class="badge">
+            ${asset}
+          </div>
+
         </div>
 
         <div class="row">
           <span>Units</span>
-          <strong>${formatNumber(units)}</strong>
+          <strong>${Number(units).toLocaleString()}</strong>
         </div>
 
         <div class="row">
           <span>NAV</span>
-          <strong>${formatNumber(nav)}</strong>
+          <strong>${nav}</strong>
         </div>
 
         <div class="row">
@@ -389,111 +399,121 @@ async function loadData() {
           <strong>${allocationText}</strong>
         </div>
 
+        <div class="row">
+          <span>Daily Return</span>
+          <strong class="${returnClass}">
+            ${dailyReturn >=0 ? "+" : ""}
+            ${(dailyReturn * 100).toFixed(2)}%
+          </strong>
+        </div>
+
         <div class="allocation-bar">
-          <div class="allocation-fill"
-            style="width:${allocationValue}%; background: linear-gradient(90deg, ${color}, #ffffff88);">
+          <div class="fill"
+            style="
+              width:${allocationRaw*100}%;
+              background:${color};
+            ">
           </div>
         </div>
+
       </div>
     `;
   });
 
-  const equityValue = assetTotals.Equity + assetTotals.Balanced * 0.5;
-  const defensiveValue = totalPortfolio - equityValue;
+  document.getElementById("totalPortfolio")
+    .innerHTML = formatBaht(totalPortfolio);
 
-  document.getElementById("totalValue").innerHTML = formatBaht(totalPortfolio);
-  document.getElementById("fundCount").innerHTML = rows.length;
-  document.getElementById("largestFund").innerHTML = shortName(largestFund);
-  document.getElementById("largestPct").innerHTML = largestAllocationText;
-  document.getElementById("riskSplit").innerHTML =
-    `${formatPercent((equityValue / totalPortfolio) * 100)} / ${formatPercent((defensiveValue / totalPortfolio) * 100)}`;
+  const movementEl =
+    document.getElementById("dailyMovement");
+
+  movementEl.innerHTML =
+    `${weightedReturn >=0 ? "+" : ""}${weightedReturn.toFixed(2)}%`;
+
+  movementEl.className =
+    `stat-value ${weightedReturn >=0 ? "green" : "red"}`;
+
+  document.getElementById("largestHolding")
+    .innerHTML = shortName(largestFund);
+
+  document.getElementById("largestPct")
+    .innerHTML = largestAllocation;
+
+  document.getElementById("fundCount")
+    .innerHTML = rows.length;
 
   new Chart(
     document.getElementById("barChart"),
     {
-      type: "bar",
-      data: {
-        labels: fundLabels,
-        datasets: [{
-          label: "Portfolio Value",
-          data: fundValues,
-          backgroundColor: fundColors,
-          borderRadius: 10
+      type:"bar",
+
+      data:{
+        labels:labels,
+        datasets:[{
+          label:"Portfolio Value",
+          data:values,
+          backgroundColor:colors,
+          borderRadius:10
         }]
       },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            labels: { color: "white" }
-          },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                return formatBaht(context.raw);
-              }
+
+      options:{
+        plugins:{
+          legend:{
+            labels:{
+              color:"white"
             }
           }
         },
-        scales: {
-          x: {
-            ticks: {
-              color: "white",
-              maxRotation: 35,
-              minRotation: 20,
-              font: { size: 11 }
+
+        scales:{
+          x:{
+            ticks:{
+              color:"white",
+              maxRotation:35,
+              minRotation:20
             },
-            grid: { color: "rgba(255,255,255,0.08)" }
+            grid:{
+              color:"rgba(255,255,255,0.08)"
+            }
           },
-          y: {
-            ticks: {
-              color: "white",
-              callback: function(value) {
-                return Number(value).toLocaleString("en-US");
-              }
+
+          y:{
+            ticks:{
+              color:"white"
             },
-            grid: { color: "rgba(255,255,255,0.08)" }
+            grid:{
+              color:"rgba(255,255,255,0.08)"
+            }
           }
         }
       }
     }
   );
 
-  const assetLabels = Object.keys(assetTotals).filter(k => assetTotals[k] > 0);
-  const assetValues = assetLabels.map(k => assetTotals[k]);
-  const assetColors = assetLabels.map(k => assetColor(k));
-
   new Chart(
-    document.getElementById("assetChart"),
+    document.getElementById("pieChart"),
     {
-      type: "doughnut",
-      data: {
-        labels: assetLabels,
-        datasets: [{
-          data: assetValues,
-          backgroundColor: assetColors,
-          borderColor: "rgba(255,255,255,0.75)",
-          borderWidth: 2
+      type:"doughnut",
+
+      data:{
+        labels:Object.keys(assetTotals),
+
+        datasets:[{
+          data:Object.values(assetTotals),
+          backgroundColor:
+            Object.keys(assetTotals)
+              .map(assetColor)
         }]
       },
-      options: {
-        responsive: true,
-        cutout: "62%",
-        plugins: {
-          legend: {
-            position: "bottom",
-            labels: {
-              color: "white",
-              padding: 14
-            }
-          },
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                const value = context.raw;
-                const pct = (value / totalPortfolio) * 100;
-                return `${context.label}: ${formatBaht(value)} (${pct.toFixed(2)}%)`;
-              }
+
+      options:{
+        cutout:"62%",
+
+        plugins:{
+          legend:{
+            position:"bottom",
+            labels:{
+              color:"white"
             }
           }
         }
@@ -503,6 +523,7 @@ async function loadData() {
 }
 
 loadData();
+
 </script>
 
 </body>
