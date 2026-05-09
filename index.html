@@ -19,7 +19,7 @@
 body{
   font-family:Arial,sans-serif;
   background:
-    radial-gradient(circle at top left, rgba(59,130,246,0.20), transparent 30%),
+    radial-gradient(circle at top left, rgba(59,130,246,0.18), transparent 30%),
     linear-gradient(135deg,#020617,#0f172a,#1e293b);
   color:white;
   padding:24px;
@@ -32,7 +32,7 @@ body{
 }
 
 .header{
-  margin-bottom:26px;
+  margin-bottom:28px;
 }
 
 .header h1{
@@ -80,13 +80,8 @@ body{
   font-size:13px;
 }
 
-.green{
-  color:#22c55e;
-}
-
-.red{
-  color:#ef4444;
-}
+.green{color:#22c55e}
+.red{color:#ef4444}
 
 .chart-grid{
   display:grid;
@@ -103,6 +98,20 @@ body{
   font-size:18px;
   margin-bottom:18px;
   font-weight:bold;
+}
+
+.chart-wrapper{
+  position:relative;
+  width:100%;
+  height:340px;
+}
+
+.chart-wrapper.small{
+  height:280px;
+}
+
+.history-wrapper{
+  height:420px;
 }
 
 .fund-grid{
@@ -178,6 +187,10 @@ body{
     font-size:30px;
   }
 
+  .history-wrapper{
+    height:320px;
+  }
+
 }
 
 </style>
@@ -220,23 +233,41 @@ body{
 
 </div>
 
-<div class="chart-grid">
-
-<div class="card chart-card">
+<div class="card chart-card" style="margin-bottom:24px;">
 <div class="chart-title">Portfolio Growth History</div>
+
+<div class="chart-wrapper history-wrapper">
 <canvas id="historyChart"></canvas>
 </div>
 
+</div>
+
+<div class="chart-grid">
+
 <div class="card chart-card">
-<div class="chart-title">Portfolio Allocation</div>
+
+<div class="chart-title">
+Portfolio Allocation
+</div>
+
+<div class="chart-wrapper">
 <canvas id="allocationChart"></canvas>
 </div>
 
 </div>
 
-<div class="card chart-card" style="margin-bottom:24px;">
-<div class="chart-title">Personal vs Retirement</div>
+<div class="card chart-card">
+
+<div class="chart-title">
+Personal vs Retirement
+</div>
+
+<div class="chart-wrapper small">
 <canvas id="categoryChart"></canvas>
+</div>
+
+</div>
+
 </div>
 
 <div class="fund-grid" id="fundGrid"></div>
@@ -314,10 +345,14 @@ async function fetchSheet(url){
 
 async function loadDashboard(){
 
-  const mainData = await fetchSheet(MAIN_URL);
-  const historyData = await fetchSheet(HISTORY_URL);
+  const mainData =
+    await fetchSheet(MAIN_URL);
 
-  const rows = mainData.table.rows;
+  const historyData =
+    await fetchSheet(HISTORY_URL);
+
+  const rows =
+    mainData.table.rows;
 
   const labels = [];
   const values = [];
@@ -337,12 +372,6 @@ async function loadDashboard(){
 
     const fund =
       row.c[0]?.v || "";
-
-    const units =
-      row.c[1]?.v || 0;
-
-    const nav =
-      row.c[2]?.v || 0;
 
     const totalValue =
       row.c[3]?.v || 0;
@@ -370,11 +399,11 @@ async function loadDashboard(){
     weightedReturn +=
       allocationRaw * (dailyReturn / 100);
 
-    if(category === "Personal Investments"){
+    if(category==="Personal Investments"){
       personalValue += totalValue;
     }
 
-    if(category === "Retirement Portfolio"){
+    if(category==="Retirement Portfolio"){
       retirementValue += totalValue;
     }
 
@@ -403,11 +432,6 @@ async function loadDashboard(){
         <div class="row">
           <span>Asset Class</span>
           <strong>${asset}</strong>
-        </div>
-
-        <div class="row">
-          <span>NAV</span>
-          <strong>${nav}</strong>
         </div>
 
         <div class="row">
@@ -466,23 +490,48 @@ async function loadDashboard(){
   new Chart(
     document.getElementById("allocationChart"),
     {
-      type:"doughnut",
+      type:"bar",
 
       data:{
         labels:labels,
 
         datasets:[{
+          label:"Portfolio Value",
           data:values,
-          backgroundColor:colors
+          backgroundColor:colors,
+          borderRadius:8
         }]
       },
 
       options:{
+        maintainAspectRatio:false,
+
         plugins:{
           legend:{
-            position:"bottom",
             labels:{
               color:"white"
+            }
+          }
+        },
+
+        scales:{
+          x:{
+            ticks:{
+              color:"white",
+              maxRotation:35,
+              minRotation:20
+            },
+            grid:{
+              color:"rgba(255,255,255,0.08)"
+            }
+          },
+
+          y:{
+            ticks:{
+              color:"white"
+            },
+            grid:{
+              color:"rgba(255,255,255,0.08)"
             }
           }
         }
@@ -493,12 +542,12 @@ async function loadDashboard(){
   new Chart(
     document.getElementById("categoryChart"),
     {
-      type:"pie",
+      type:"doughnut",
 
       data:{
         labels:[
-          "Personal Investments",
-          "Retirement Portfolio"
+          "Personal",
+          "Retirement"
         ],
 
         datasets:[{
@@ -515,8 +564,12 @@ async function loadDashboard(){
       },
 
       options:{
+        maintainAspectRatio:false,
+        cutout:"60%",
+
         plugins:{
           legend:{
+            position:"bottom",
             labels:{
               color:"white"
             }
@@ -535,7 +588,7 @@ async function loadDashboard(){
   historyRows.forEach(r=>{
 
     historyDates.push(
-      r.c[0]?.f || r.c[0]?.v || ""
+      r.c[0]?.v || ""
     );
 
     historyValues.push(
@@ -562,6 +615,8 @@ async function loadDashboard(){
       },
 
       options:{
+        maintainAspectRatio:false,
+
         plugins:{
           legend:{
             labels:{
