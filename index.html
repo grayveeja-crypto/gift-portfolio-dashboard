@@ -17,9 +17,12 @@
 
     body {
       font-family: Arial, sans-serif;
-      background: linear-gradient(135deg, #0f172a, #1e293b);
+      background:
+        radial-gradient(circle at top left, rgba(56,189,248,0.18), transparent 35%),
+        linear-gradient(135deg, #020617, #0f172a 45%, #1e293b);
       color: white;
       padding: 24px;
+      min-height: 100vh;
     }
 
     .container {
@@ -27,9 +30,18 @@
       margin: auto;
     }
 
-    h1 {
+    .header {
+      margin-bottom: 26px;
+    }
+
+    .header h1 {
       font-size: 42px;
-      margin-bottom: 24px;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      color: #cbd5e1;
+      font-size: 15px;
     }
 
     .top-grid {
@@ -39,24 +51,37 @@
       margin-bottom: 24px;
     }
 
-    .stat-card {
+    .stat-card,
+    .chart-card,
+    .fund-card {
       background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 22px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+    }
+
+    .stat-card {
       padding: 22px;
-      border-radius: 20px;
-      backdrop-filter: blur(12px);
+      min-height: 125px;
     }
 
     .stat-title {
       color: #cbd5e1;
-      font-size: 14px;
+      font-size: 13px;
       margin-bottom: 10px;
     }
 
     .stat-value {
-      font-size: 22px;
+      font-size: 24px;
       font-weight: bold;
-      line-height: 1.3;
+      line-height: 1.25;
+    }
+
+    .stat-sub {
+      margin-top: 8px;
+      font-size: 13px;
+      color: #94a3b8;
     }
 
     .chart-grid {
@@ -67,60 +92,81 @@
     }
 
     .chart-card {
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.1);
       padding: 20px;
-      border-radius: 20px;
-      backdrop-filter: blur(12px);
+      min-height: 360px;
     }
 
     .chart-title {
       font-size: 18px;
       margin-bottom: 16px;
       color: #f8fafc;
+      font-weight: bold;
     }
 
     .fund-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
       gap: 18px;
+      margin-top: 24px;
     }
 
     .fund-card {
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.1);
       padding: 18px;
-      border-radius: 18px;
-      backdrop-filter: blur(12px);
+    }
+
+    .fund-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 14px;
     }
 
     .fund-name {
       font-size: 18px;
       font-weight: bold;
-      margin-bottom: 14px;
-      line-height: 1.4;
+      line-height: 1.3;
+    }
+
+    .badge {
+      font-size: 11px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      white-space: nowrap;
+      background: rgba(255,255,255,0.12);
+      color: #e2e8f0;
     }
 
     .row {
       display: flex;
       justify-content: space-between;
-      margin: 8px 0;
+      margin: 9px 0;
       color: #e2e8f0;
       font-size: 14px;
     }
 
+    .row strong {
+      color: white;
+    }
+
     .allocation-bar {
       height: 10px;
-      background: rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.14);
       border-radius: 999px;
-      margin-top: 12px;
+      margin-top: 14px;
       overflow: hidden;
     }
 
     .allocation-fill {
       height: 100%;
-      background: linear-gradient(90deg, #38bdf8, #22c55e);
       border-radius: 999px;
+    }
+
+    .footer {
+      color: #94a3b8;
+      text-align: center;
+      margin-top: 28px;
+      font-size: 13px;
     }
 
     canvas {
@@ -128,12 +174,24 @@
     }
 
     @media(max-width: 900px) {
+      body {
+        padding: 16px;
+      }
+
+      .header h1 {
+        font-size: 30px;
+      }
+
       .chart-grid {
         grid-template-columns: 1fr;
       }
 
-      h1 {
-        font-size: 30px;
+      .chart-card {
+        min-height: 300px;
+      }
+
+      .stat-value {
+        font-size: 21px;
       }
     }
   </style>
@@ -143,61 +201,91 @@
 
 <div class="container">
 
-  <h1>Gift Portfolio Dashboard</h1>
+  <div class="header">
+    <h1>Gift Portfolio Dashboard</h1>
+    <p>Live investment dashboard connected to Google Sheets</p>
+  </div>
 
   <div class="top-grid">
     <div class="stat-card">
       <div class="stat-title">Total Portfolio</div>
       <div class="stat-value" id="totalValue">Loading...</div>
+      <div class="stat-sub">Current market value</div>
     </div>
 
     <div class="stat-card">
       <div class="stat-title">Number of Funds</div>
       <div class="stat-value" id="fundCount">-</div>
+      <div class="stat-sub">Active holdings</div>
     </div>
 
     <div class="stat-card">
-      <div class="stat-title">Largest Allocation</div>
+      <div class="stat-title">Largest Holding</div>
       <div class="stat-value" id="largestFund">-</div>
+      <div class="stat-sub" id="largestPct">-</div>
     </div>
 
     <div class="stat-card">
-      <div class="stat-title">Last Updated</div>
-      <div class="stat-value" id="todayDate">-</div>
+      <div class="stat-title">Risk Split</div>
+      <div class="stat-value" id="riskSplit">-</div>
+      <div class="stat-sub">Equity / Defensive</div>
     </div>
   </div>
 
   <div class="chart-grid">
-
     <div class="chart-card">
-      <div class="chart-title">Portfolio Allocation</div>
+      <div class="chart-title">Portfolio Value by Fund</div>
       <canvas id="barChart"></canvas>
     </div>
 
     <div class="chart-card">
-      <div class="chart-title">Asset Allocation</div>
-      <canvas id="donutChart"></canvas>
+      <div class="chart-title">Asset Class Allocation</div>
+      <canvas id="assetChart"></canvas>
     </div>
-
   </div>
 
-  <div class="fund-grid" id="fundGrid"></div>
+  <div class="chart-card">
+    <div class="chart-title">Fund Details</div>
+    <div class="fund-grid" id="fundGrid"></div>
+  </div>
+
+  <div class="footer">
+    Data updates automatically when your Google Sheet is updated.
+  </div>
 
 </div>
 
 <script>
-
 const SHEET_URL =
 "https://docs.google.com/spreadsheets/d/11rbwXYqXhJrXG7oWQS3pl5fHiXXWtNpsxgN7TbIc6UQ/gviz/tq?tqx=out:json";
 
 function shortName(name) {
-  return name
+  return String(name)
     .replace("UNITED GLOBAL DURABLE EQUITIES FUND M11UGD", "M11UGD")
     .replace("UNITED GLOBAL BALANCED FUND M10UGBF", "M10UGBF")
     .replace("UNITED GLOBAL INCOME STRATEGIC BOND FUND M12UGIS", "M12UGIS")
     .replace("UOB PERMPOONSUB (FIXED INCOME) M02FI", "M02FI")
     .replace("UOB SMART GOLD FUND M07SG", "M07SG")
     .replace("SCBRMWORLD(A)", "SCBRMWORLD");
+}
+
+function getAssetClass(name) {
+  const n = String(name).toUpperCase();
+
+  if (n.includes("GOLD")) return "Gold";
+  if (n.includes("BOND") || n.includes("FIXED INCOME") || n.includes("SFF")) return "Fixed Income";
+  if (n.includes("BALANCED")) return "Balanced";
+  if (n.includes("S&P") || n.includes("WORLD") || n.includes("EQUITIES") || n.includes("RM2")) return "Equity";
+
+  return "Other";
+}
+
+function assetColor(asset) {
+  if (asset === "Equity") return "#38bdf8";
+  if (asset === "Fixed Income") return "#22c55e";
+  if (asset === "Gold") return "#facc15";
+  if (asset === "Balanced") return "#a78bfa";
+  return "#94a3b8";
 }
 
 function formatBaht(value) {
@@ -214,10 +302,12 @@ function formatNumber(value) {
   });
 }
 
+function formatPercent(value) {
+  return Number(value).toFixed(2) + "%";
+}
+
 async function loadData() {
-
   const res = await fetch(SHEET_URL);
-
   const text = await res.text();
 
   const jsonText = text.substring(
@@ -226,56 +316,57 @@ async function loadData() {
   );
 
   const data = JSON.parse(jsonText);
-
   const rows = data.table.rows;
 
-  const labels = [];
-  const values = [];
+  const fundLabels = [];
+  const fundValues = [];
+  const fundColors = [];
+
+  const assetTotals = {
+    Equity: 0,
+    "Fixed Income": 0,
+    Gold: 0,
+    Balanced: 0,
+    Other: 0
+  };
 
   let totalPortfolio = 0;
   let largestFund = "";
   let largestValue = 0;
+  let largestAllocationText = "";
 
-  const fundGrid =
-    document.getElementById("fundGrid");
-
+  const fundGrid = document.getElementById("fundGrid");
   fundGrid.innerHTML = "";
 
   rows.forEach(row => {
+    const fund = row.c[0]?.v || "";
+    const units = row.c[1]?.v || 0;
+    const nav = row.c[2]?.v || 0;
+    const totalValue = row.c[3]?.v || 0;
+    const allocationText = row.c[4]?.f || "";
+    const allocationValue = (row.c[4]?.v || 0) * 100;
 
-    const fund =
-      row.c[0]?.v || "";
-
-    const units =
-      row.c[1]?.v || 0;
-
-    const nav =
-      row.c[2]?.v || 0;
-
-    const totalValue =
-      row.c[3]?.v || 0;
-
-    const allocationText =
-      row.c[4]?.f || "";
-
-    const allocationValue =
-      (row.c[4]?.v || 0) * 100;
+    const asset = getAssetClass(fund);
+    const color = assetColor(asset);
 
     totalPortfolio += totalValue;
+    assetTotals[asset] += totalValue;
 
     if (totalValue > largestValue) {
       largestValue = totalValue;
       largestFund = fund;
+      largestAllocationText = allocationText;
     }
 
-    labels.push(shortName(fund));
-    values.push(totalValue);
+    fundLabels.push(shortName(fund));
+    fundValues.push(totalValue);
+    fundColors.push(color);
 
     fundGrid.innerHTML += `
       <div class="fund-card">
-
-        <div class="fund-name">
-          ${shortName(fund)}
+        <div class="fund-top">
+          <div class="fund-name">${shortName(fund)}</div>
+          <div class="badge">${asset}</div>
         </div>
 
         <div class="row">
@@ -300,85 +391,109 @@ async function loadData() {
 
         <div class="allocation-bar">
           <div class="allocation-fill"
-            style="width:${allocationValue}%">
+            style="width:${allocationValue}%; background: linear-gradient(90deg, ${color}, #ffffff88);">
           </div>
         </div>
-
       </div>
     `;
   });
 
-  document.getElementById("totalValue")
-    .innerHTML = formatBaht(totalPortfolio);
+  const equityValue = assetTotals.Equity + assetTotals.Balanced * 0.5;
+  const defensiveValue = totalPortfolio - equityValue;
 
-  document.getElementById("fundCount")
-    .innerHTML = rows.length;
-
-  document.getElementById("largestFund")
-    .innerHTML = shortName(largestFund);
-
-  document.getElementById("todayDate")
-    .innerHTML = new Date().toLocaleDateString();
+  document.getElementById("totalValue").innerHTML = formatBaht(totalPortfolio);
+  document.getElementById("fundCount").innerHTML = rows.length;
+  document.getElementById("largestFund").innerHTML = shortName(largestFund);
+  document.getElementById("largestPct").innerHTML = largestAllocationText;
+  document.getElementById("riskSplit").innerHTML =
+    `${formatPercent((equityValue / totalPortfolio) * 100)} / ${formatPercent((defensiveValue / totalPortfolio) * 100)}`;
 
   new Chart(
     document.getElementById("barChart"),
     {
       type: "bar",
-
       data: {
-        labels: labels,
-
+        labels: fundLabels,
         datasets: [{
           label: "Portfolio Value",
-          data: values,
+          data: fundValues,
+          backgroundColor: fundColors,
           borderRadius: 10
         }]
       },
-
       options: {
+        responsive: true,
         plugins: {
           legend: {
-            labels: {
-              color: "white"
+            labels: { color: "white" }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return formatBaht(context.raw);
+              }
             }
           }
         },
-
         scales: {
           x: {
             ticks: {
-              color: "white"
-            }
+              color: "white",
+              maxRotation: 35,
+              minRotation: 20,
+              font: { size: 11 }
+            },
+            grid: { color: "rgba(255,255,255,0.08)" }
           },
-
           y: {
             ticks: {
-              color: "white"
-            }
+              color: "white",
+              callback: function(value) {
+                return Number(value).toLocaleString("en-US");
+              }
+            },
+            grid: { color: "rgba(255,255,255,0.08)" }
           }
         }
       }
     }
   );
 
+  const assetLabels = Object.keys(assetTotals).filter(k => assetTotals[k] > 0);
+  const assetValues = assetLabels.map(k => assetTotals[k]);
+  const assetColors = assetLabels.map(k => assetColor(k));
+
   new Chart(
-    document.getElementById("donutChart"),
+    document.getElementById("assetChart"),
     {
       type: "doughnut",
-
       data: {
-        labels: labels,
-
+        labels: assetLabels,
         datasets: [{
-          data: values
+          data: assetValues,
+          backgroundColor: assetColors,
+          borderColor: "rgba(255,255,255,0.75)",
+          borderWidth: 2
         }]
       },
-
       options: {
+        responsive: true,
+        cutout: "62%",
         plugins: {
           legend: {
+            position: "bottom",
             labels: {
-              color: "white"
+              color: "white",
+              padding: 14
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const value = context.raw;
+                const pct = (value / totalPortfolio) * 100;
+                return `${context.label}: ${formatBaht(value)} (${pct.toFixed(2)}%)`;
+              }
             }
           }
         }
@@ -388,7 +503,6 @@ async function loadData() {
 }
 
 loadData();
-
 </script>
 
 </body>
