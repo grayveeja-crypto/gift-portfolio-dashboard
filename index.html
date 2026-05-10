@@ -578,6 +578,76 @@ async function loadDashboard(){
         }
       }
     );
+        try{
+
+      const historyData =
+        await fetchSheet(HISTORY_URL);
+
+      const historyRows =
+        historyData.table.rows;
+
+      const historyDates = [];
+      const historyValues = [];
+
+      historyRows.forEach(r=>{
+
+        historyDates.push(
+          r.c[0]?.f || r.c[0]?.v || ""
+        );
+
+        historyValues.push(
+          r.c[1]?.v || 0
+        );
+
+      });
+
+      new Chart(
+        document.getElementById("historyChart"),
+        {
+          type:"line",
+          data:{
+            labels:historyDates,
+            datasets:[{
+              label:"Portfolio Value",
+              data:historyValues,
+              borderColor:"#38bdf8",
+              backgroundColor:"rgba(56,189,248,0.15)",
+              fill:true,
+              tension:0.35
+            }]
+          },
+          options:{
+            maintainAspectRatio:false,
+            plugins:{
+              legend:{
+                labels:{color:"white"}
+              }
+            },
+            scales:{
+              x:{
+                ticks:{color:"white"},
+                grid:{
+                  color:"rgba(255,255,255,0.08)"
+                }
+              },
+              y:{
+                ticks:{color:"white"},
+                grid:{
+                  color:"rgba(255,255,255,0.08)"
+                }
+              }
+            }
+          }
+        }
+      );
+
+    }catch(historyError){
+
+      document.getElementById("historyChart")
+        .parentElement.innerHTML =
+        "<div class='error'>History chart unavailable.</div>";
+
+    }
 
   }catch(error){
 
