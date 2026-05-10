@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Gift Portfolio Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+  font-family:Arial,sans-serif;
+  background:
+    radial-gradient(circle at top left, rgba(59,130,246,0.18), transparent 30%),
+    linear-gradient(135deg,#020617,#0f172a,#1e293b);
+  color:white;
+  padding:24px;
+  min-height:100vh;
+}
+
+.container{max-width:1500px;margin:auto}
+.header{margin-bottom:28px}
+.header h1{font-size:42px;margin-bottom:8px}
+.header p{color:#cbd5e1}
+
+.top-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:18px;
+  margin-bottom:24px;
+}
+
+.card{
+  background:rgba(255,255,255,0.08);
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:22px;
+  backdrop-filter:blur(14px);
+  box-shadow:0 20px 40px rgba(0,0,0,0.25);
+}
+
+.stat-card{padding:22px}
+.stat-title{color:#cbd5e1;font-size:13px;margin-bottom:10px}
+.stat-value{font-size:24px;font-weight:bold;line-height:1.25}
+.stat-sub{margin-top:8px;color:#94a3b8;font-size:13px}
+
+.green{color:#22c55e}
+.red{color:#ef4444}
+.yellow{color:#facc15}
+.blue{color:#38bdf8}
+
+.section-title{
+  font-size:24px;
+  margin:34px 0 16px;
+}
+
+.chart-card{padding:20px;margin-bottom:24px}
+.chart-title{font-size:18px;margin-bottom:18px;font-weight:bold}
+
+.chart-grid{
+  display:grid;
+  grid-template-columns:2fr 1fr;
+  gap:20px;
+}
+
+.double-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
+}
+
+.chart-wrapper{position:relative;width:100%;height:340px}
+.history-wrapper{height:390px}
+.small{height:280px}
+
+.fund-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:18px;
+}
+
+.fund-card{padding:18px}
+
+.fund-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:10px;
+  margin-bottom:14px;
+}
+
+.fund-name{font-size:18px;font-weight:bold;line-height:1.3}
+
+.badge{
+  padding:5px 8px;
+  border-radius:999px;
+  font-size:11px;
+  background:rgba(255,255,255,0.12);
+  white-space:nowrap;
+}
+
+.row{
+  display:flex;
+  justify-content:space-between;
+  margin:9px 0;
+  color:#e2e8f0;
+  font-size:14px;
+  gap:10px;
+}
+
+.row strong{text-align:right}
+
+.allocation-bar{
+  height:10px;
+  background:rgba(255,255,255,0.12);
+  border-radius:999px;
+  overflow:hidden;
+  margin-top:12px;
+}
+
+.fill{height:100%;border-radius:999px}
+
+.table-wrap{overflow-x:auto}
+.table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:6px;
+}
+
+.table th,.table td{
+  padding:12px;
+  border-bottom:1px solid rgba(255,255,255,0.1);
+  text-align:left;
+  font-size:14px;
+  white-space:nowrap;
+}
+
+.table th{color:#cbd5e1}
+.status-pill{
+  display:inline-block;
+  padding:5px 9px;
+  border-radius:999px;
+  font-size:12px;
+  background:rgba(255,255,255,0.12);
+}
+
+.footer{
+  margin-top:28px;
+  text-align:center;
+  color:#94a3b8;
+  font-size:13px;
+}
+
+.error{color:#f87171;padding:20px}
+
+@media(max-width:900px){
+  body{padding:16px}
+  .header h1{font-size:30px}
+  .chart-grid,.double-grid{grid-template-columns:1fr}
+  .history-wrapper{height:320px}
+  .table th,.table td{font-size:12px;padding:8px}
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+  <div class="header">
+    <h1>Gift Portfolio Dashboard</h1>
+    <p>Personal Investments + Retirement Portfolio + Net Worth Tracking</p>
+  </div>
+
+  <div class="top-grid">
+    <div class="card stat-card">
+      <div class="stat-title">Total Portfolio</div>
+      <div class="stat-value" id="totalPortfolio">Loading...</div>
+      <div class="stat-sub">Current market value</div>
+    </div>
+
+    <div class="card stat-card">
+      <div class="stat-title">Net Worth</div>
+      <div class="stat-value" id="netWorth">-</div>
+      <div class="stat-sub">Assets minus debts</div>
+    </div>
+
+    <div class="card stat-card">
+      <div class="stat-title">Total Debt</div>
+      <div class="stat-value" id="totalDebt">-</div>
+      <div class="stat-sub">Current liabilities</div>
+    </div>
+
+    <div class="card stat-card">
+      <div class="stat-title">Personal Investments</div>
+      <div class="stat-value" id="personalValue">-</div>
+      <div class="stat-sub">Self-directed portfolio</div>
+    </div>
+
+    <div class="card stat-card">
+      <div class="stat-title">Retirement Portfolio</div>
+      <div class="stat-value" id="retirementValue">-</div>
+      <div class="stat-sub">Provident fund assets</div>
+    </div>
+
+    <div class="card stat-card">
+      <div class="stat-title">Daily Movement</div>
+      <div class="stat-value" id="dailyMovement">-</div>
+      <div class="stat-sub">Weighted daily return</div>
+    </div>
+
+    <div class="card stat-card">
+      <div class="stat-title">Unrealized Gain/Loss</div>
+      <div class="stat-value" id="totalGainLoss">-</div>
+      <div class="stat-sub" id="totalGainLossPct">Total return</div>
+    </div>
+
+    <div class="card stat-card">
+      <div class="stat-title">Emergency Coverage</div>
+      <div class="stat-value" id="emergencyCoverage">-</div>
+      <div class="stat-sub">Months of expenses covered</div>
+    </div>
+
+    <div class="card stat-card">
+      <div class="stat-title">Unallocated Cash</div>
+      <div class="stat-value" id="unallocatedCash">-</div>
+      <div class="stat-sub">Latest cash flow snapshot</div>
+    </div>
+
+    <div class="card stat-card">
+      <div class="stat-title">Last Updated</div>
+      <div class="stat-value" id="lastUpdated">-</div>
+      <div class="stat-sub">Dashboard refresh time</div>
+    </div>
+  </div>
+
+  <div class="double-grid">
+    <div class="card chart-card">
+      <div class="chart-title">Portfolio Growth History</div>
+      <div class="chart-wrapper history-wrapper">
+        <canvas id="historyChart"></canvas>
+      </div>
+    </div>
+
+    <div class="card chart-card">
+      <div class="chart-title">Net Worth Trend</div>
+      <div class="chart-wrapper history-wrapper">
+        <canvas id="netWorthChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="card chart-card">
+      <div class="chart-title">Current Asset Allocation</div>
+      <div class="chart-wrapper">
+        <canvas id="allocationChart"></canvas>
+      </div>
+    </div>
+
+    <div class="card chart-card">
+      <div class="chart-title">Personal vs Retirement</div>
+      <div class="chart-wrapper small">
+        <canvas id="categoryChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="card chart-card">
+    <div class="chart-title">Target Allocation Gap</div>
+    <div class="chart-wrapper">
+      <canvas id="targetChart"></canvas>
+    </div>
+  </div>
+
+  <div class="card chart-card">
+    <div class="chart-title">Rebalancing View</div>
+    <div id="targetTable"></div>
+  </div>
+
+  <div class="double-grid">
+    <div class="card chart-card">
+      <div class="chart-title">Debt Breakdown</div>
+      <div class="chart-wrapper small">
+        <canvas id="debtChart"></canvas>
+      </div>
+    </div>
+
+    <div class="card chart-card">
+      <div class="chart-title">Cash Flow Snapshot</div>
+      <div id="cashFlowTable"></div>
+    </div>
+  </div>
+
+  <div class="card chart-card">
+    <div class="chart-title">Debt Details</div>
+    <div id="debtTable"></div>
+  </div>
+
+  <h2 class="section-title">Fund Details</h2>
+  <div class="fund-grid" id="fundGrid"></div>
+
+  <div class="footer">
+    Dashboard updates automatically from Google Sheets.
+  </div>
+
+</div>
+
+<script>
+const SHEET_ID = "11rbwXYqXhJrXG7oWQS3pl5fHiXXWtNpsxgN7TbIc6UQ";
+
+const MAIN_URL =
+`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+
+const HISTORY_URL =
+`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=History&tqx=out:json`;
+
+const TARGET_URL =
+`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=TargetAllocation&tqx=out:json`;
+
+const DEBTS_URL =
+`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=Debts&tqx=out:json`;
+
+const CASH_FLOW_URL =
+`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=Cash%20Flow&tqx=out:json`;
+
+function formatBaht(v){
+  return Number(v || 0).toLocaleString("en-US",{
+    minimumFractionDigits:2,
+    maximumFractionDigits:2
+  }) + " THB";
+}
+
+function formatNumber(v){
+  return Number(v || 0).toLocaleString("en-US",{
+    minimumFractionDigits:2,
+    maximumFractionDigits:4
+  });
+}
+
+function shortName(name){
+  return String(name)
+    .replace("UNITED GLOBAL DURABLE EQUITIES FUND M11UGD","M11UGD")
+    .replace("UNITED GLOBAL BALANCED FUND M10UGBF","M10UGBF")
+    .replace("UNITED GLOBAL INCOME STRATEGIC BOND FUND M12UGIS","M12UGIS")
+    .replace("UOB PERMPOONSUB (FIXED INCOME) M02FI","M02FI")
+    .replace("UOB SMART GOLD FUND M07SG","M07SG")
+    .replace("SCBRMWORLD(A)","SCBRMWORLD");
+}
+
+async function fetchSheet(url){
+  const res = await fetch(url);
+  const text = await res.text();
+  const jsonText = text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1);
+  return JSON.parse(jsonText);
+}
+
+function isPersonal(category){
+  return String(category).toLowerCase().includes("personal");
+}
+
+function isRetirement(category){
+  return String(category).toLowerCase().includes("retirement");
+}
+
+function statusForGap(gap){
+  if(gap > 3) return {text:"Overweight", cls:"yellow"};
+  if(gap < -3) return {text:"Underweight", cls:"red"};
+  return {text:"On Track", cls:"green"};
+}
+
+function createTable(headers, rows){
+  let html = `<div class="table-wrap"><table class="table"><thead><tr>`;
+  headers.forEach(h=> html += `<th>${h}</th>`);
+  html += `</tr></thead><tbody>`;
+  rows.forEach(row=>{
+    html += `<tr>`;
+    row.forEach(cell=> html += `<td>${cell}</td>`);
+    html += `</tr>`;
+  });
+  html += `</tbody></table></div>`;
+  return html;
+}
+
+async function loadDashboard(){
+  try{
+    const mainData = await fetchSheet(MAIN_URL);
+    const rows = mainData.table.rows;
+
+    let totalPortfolio = 0;
+    let personalValue = 0;
+    let retirementValue = 0;
+    let totalGainLoss = 0;
+    let totalCostBasis = 0;
+    let weightedReturn = 0;
+
+    const assetMap = {};
+    const fundGrid = document.getElementById("fundGrid");
+    fundGrid.innerHTML = "";
+
+    rows.forEach(row=>{
+      const fund = row.c[0]?.v || "";
+      const units = row.c[3]?.v || 0;
+      const nav = row.c[4]?.v || 0;
+      const totalValue = row.c[5]?.v || 0;
+      const allocationText = row.c[6]?.f || "";
+      const allocationRaw = row.c[6]?.v || 0;
+      const dailyReturn = row.c[7]?.v || 0;
+      const category = row.c[8]?.v || "";
+      const assetClass = row.c[9]?.v || "Other";
+      const costBasis = row.c[12]?.v || 0;
+      const gainLoss = row.c[13]?.v || 0;
+      const gainLossPct = row.c[14]?.v || 0;
+
+      totalPortfolio += totalValue;
+      totalGainLoss += gainLoss;
+      totalCostBasis += costBasis;
+      weightedReturn += allocationRaw * (dailyReturn / 100);
+
+      if(isPersonal(category)) personalValue += totalValue;
+      if(isRetirement(category)) retirementValue += totalValue;
+
+      assetMap[assetClass] = (assetMap[assetClass] || 0) + totalValue;
+
+      const returnClass = dailyReturn >= 0 ? "green" : "red";
+      const gainClass = gainLoss >= 0 ? "green" : "red";
+
+      fundGrid.innerHTML += `
+        <div class="card fund-card">
+          <div class="fund-top">
+            <div class="fund-name">${shortName(fund)}</div>
+            <div class="badge">${assetClass}</div>
+          </div>
+
+          <div class="row"><span>Category</span><strong>${category}</strong></div>
+          <div class="row"><span>Units</span><strong>${formatNumber(units)}</strong></div>
+          <div class="row"><span>NAV</span><strong>${formatNumber(nav)}</strong></div>
+          <div class="row"><span>Total Value</span><strong>${formatBaht(totalValue)}</strong></div>
+          <div class="row"><span>Cost Basis</span><strong>${formatBaht(costBasis)}</strong></div>
+
+          <div class="row">
+            <span>Unrealized G/L</span>
+            <strong class="${gainClass}">${gainLoss >= 0 ? "+" : ""}${formatBaht(gainLoss)}</strong>
+          </div>
+
+          <div class="row">
+            <span>Return %</span>
+            <strong class="${gainClass}">${gainLossPct >= 0 ? "+" : ""}${(gainLossPct*100).toFixed(2)}%</strong>
+          </div>
+
+          <div class="row"><span>Allocation</span><strong>${allocationText}</strong></div>
+
+          <div class="row">
+            <span>Daily Return</span>
+            <strong class="${returnClass}">${dailyReturn >= 0 ? "+" : ""}${dailyReturn.toFixed(2)}%</strong>
+          </div>
+
+          <div class="allocation-bar">
+            <div class="fill" style="width:${allocationRaw*100}%; background:#38bdf8;"></div>
+          </div>
+        </div>
+      `;
+    });
+
+    document.getElementById("totalPortfolio").innerHTML = formatBaht(totalPortfolio);
+    document.getElementById("personalValue").innerHTML = formatBaht(personalValue);
+    document.getElementById("retirementValue").innerHTML = formatBaht(retirementValue);
+
+    const movement = weightedReturn * 100;
+    const movementEl = document.getElementById("dailyMovement");
+    movementEl.innerHTML = `${movement >= 0 ? "+" : ""}${movement.toFixed(2)}%`;
+    movementEl.className = `stat-value ${movement >=0 ? "green" : "red"}`;
+
+    const totalReturnPct = totalCostBasis > 0 ? (totalGainLoss / totalCostBasis) * 100 : 0;
+    const gainEl = document.getElementById("totalGainLoss");
+    gainEl.innerHTML = `${totalGainLoss >=0 ? "+" : ""}${formatBaht(totalGainLoss)}`;
+    gainEl.className = `stat-value ${totalGainLoss >=0 ? "green" : "red"}`;
+    document.getElementById("totalGainLossPct").innerHTML =
+      `${totalReturnPct >=0 ? "+" : ""}${totalReturnPct.toFixed(2)}% total return`;
+
+    document.getElementById("lastUpdated").innerHTML =
+      new Date().toLocaleString("en-US",{dateStyle:"medium",timeStyle:"short"});
+
+    new Chart(document.getElementById("allocationChart"),{
+      type:"doughnut",
+      data:{
+        labels:Object.keys(assetMap),
+        datasets:[{data:Object.values(assetMap)}]
+      },
+      options:{
+        maintainAspectRatio:false,
+        plugins:{legend:{position:"bottom",labels:{color:"white"}}}
+      }
+    });
+
+    new Chart(document.getElementById("categoryChart"),{
+      type:"doughnut",
+      data:{
+        labels:["Personal","Retirement"],
+        datasets:[{data:[personalValue,retirementValue]}]
+      },
+      options:{
+        maintainAspectRatio:false,
+        cutout:"60%",
+        plugins:{legend:{position:"bottom",labels:{color:"white"}}}
+      }
+    });
+
+    await loadHistoryCharts();
+    await loadTargetAllocation(assetMap, totalPortfolio);
+    await loadDebts(totalPortfolio);
+    await loadCashFlow();
+
+  }catch(error){
+    document.getElementById("totalPortfolio").innerHTML = "Error";
+    document.getElementById("fundGrid").innerHTML =
+      `<div class="card error">Dashboard error: ${error.message}</div>`;
+  }
+}
+
+async function loadHistoryCharts(){
+  try{
+    const historyData = await fetchSheet(HISTORY_URL);
+    const historyRows = historyData.table.rows;
+    const dates = [];
+    const portfolioValues = [];
+    const debtValues = [];
+    const netWorthValues = [];
+
+    historyRows.forEach(r=>{
+      dates.push(r.c[0]?.f || r.c[0]?.v || "");
+      portfolioValues.push(r.c[1]?.v || 0);
+      debtValues.push(r.c[2]?.v || 0);
+      netWorthValues.push(r.c[3]?.v || 0);
+    });
+
+    const latestDebt = debtValues.length ? debtValues[debtValues.length - 1] : 0;
+    const latestNetWorth = netWorthValues.length ? netWorthValues[netWorthValues.length - 1] : 0;
+
+    document.getElementById("totalDebt").innerHTML = formatBaht(latestDebt);
+    document.getElementById("netWorth").innerHTML = formatBaht(latestNetWorth);
+
+    new Chart(document.getElementById("historyChart"),{
+      type:"line",
+      data:{
+        labels:dates,
+        datasets:[{
+          label:"Portfolio Value",
+          data:portfolioValues,
+          borderColor:"#38bdf8",
+          backgroundColor:"rgba(56,189,248,0.15)",
+          fill:true,
+          tension:0.35
+        }]
+      },
+      options:{
+        maintainAspectRatio:false,
+        plugins:{legend:{labels:{color:"white"}}},
+        scales:{
+          x:{ticks:{color:"white"},grid:{color:"rgba(255,255,255,0.08)"}},
+          y:{ticks:{color:"white"},grid:{color:"rgba(255,255,255,0.08)"}}
+        }
+      }
+    });
+
+    new Chart(document.getElementById("netWorthChart"),{
+      type:"line",
+      data:{
+        labels:dates,
+        datasets:[
+          {
+            label:"Net Worth",
+            data:netWorthValues,
+            borderColor:"#22c55e",
+            backgroundColor:"rgba(34,197,94,0.12)",
+            fill:true,
+            tension:0.35
+          },
+          {
+            label:"Total Debt",
+            data:debtValues,
+            borderColor:"#ef4444",
+            backgroundColor:"rgba(239,68,68,0.08)",
+            fill:false,
+            tension:0.35
+          }
+        ]
+      },
+      options:{
+        maintainAspectRatio:false,
+        plugins:{legend:{labels:{color:"white"}}},
+        scales:{
+          x:{ticks:{color:"white"},grid:{color:"rgba(255,255,255,0.08)"}},
+          y:{ticks:{color:"white"},grid:{color:"rgba(255,255,255,0.08)"}}
+        }
+      }
+    });
+
+  }catch(e){
+    document.getElementById("historyChart").parentElement.innerHTML =
+      "<div class='error'>History chart unavailable. Check History tab.</div>";
+    document.getElementById("netWorthChart").parentElement.innerHTML =
+      "<div class='error'>Net worth chart unavailable. Check History tab.</div>";
+  }
+}
+
+async function loadTargetAllocation(assetMap,totalPortfolio){
+  try{
+    const targetData = await fetchSheet(TARGET_URL);
+    const targetRows = targetData.table.rows;
+    const targetMap = {};
+
+    targetRows.forEach(r=>{
+      const asset = r.c[0]?.v || "";
+      const target = r.c[1]?.v || 0;
+      if(asset) targetMap[asset] = target;
+    });
+
+    const assetClasses = Object.keys(targetMap);
+    const currentPercents = assetClasses.map(asset=>{
+      const value = assetMap[asset] || 0;
+      return totalPortfolio > 0 ? (value / totalPortfolio) * 100 : 0;
+    });
+    const targetPercents = assetClasses.map(asset=>targetMap[asset]);
+
+    new Chart(document.getElementById("targetChart"),{
+      type:"bar",
+      data:{
+        labels:assetClasses,
+        datasets:[
+          {label:"Current %", data:currentPercents},
+          {label:"Target %", data:targetPercents}
+        ]
+      },
+      options:{
+        maintainAspectRatio:false,
+        plugins:{legend:{labels:{color:"white"}}},
+        scales:{
+          x:{ticks:{color:"white"},grid:{color:"rgba(255,255,255,0.08)"}},
+          y:{ticks:{color:"white"},grid:{color:"rgba(255,255,255,0.08)"}}
+        }
+      }
+    });
+
+    const tableRows = assetClasses.map(asset=>{
+      const current = totalPortfolio > 0 ? ((assetMap[asset] || 0) / totalPortfolio) * 100 : 0;
+      const target = targetMap[asset] || 0;
+      const gap = current - target;
+      const status = statusForGap(gap);
+      return [
+        asset,
+        `${current.toFixed(2)}%`,
+        `${target.toFixed(2)}%`,
+        `<span class="${gap >= 0 ? "yellow" : "red"}">${gap >= 0 ? "+" : ""}${gap.toFixed(2)}%</span>`,
+        `<span class="status-pill ${status.cls}">${status.text}</span>`
+      ];
+    });
+
+    document.getElementById("targetTable").innerHTML =
+      createTable(["Asset Class","Current","Target","Gap","Status"], tableRows);
+
+  }catch(e){
+    document.getElementById("targetTable").innerHTML =
+      "<div class='error'>Target allocation unavailable. Check TargetAllocation tab.</div>";
+  }
+}
+
+async function loadDebts(){
+  try{
+    const debtData = await fetchSheet(DEBTS_URL);
+    const debtRows = debtData.table.rows;
+    const labels = [];
+    const balances = [];
+    const tableRows = [];
+
+    debtRows.forEach(r=>{
+      const debt = r.c[0]?.v || "";
+      const balance = r.c[1]?.v || 0;
+      const interest = r.c[2]?.f || r.c[2]?.v || "";
+      const payment = r.c[3]?.v || 0;
+      const monthlyInterest = r.c[4]?.v || 0;
+      const principal = r.c[5]?.v || 0;
+      const years = r.c[6]?.v || 0;
+
+      labels.push(debt);
+      balances.push(balance);
+      tableRows.push([
+        debt,
+        formatBaht(balance),
+        interest,
+        formatBaht(payment),
+        formatBaht(monthlyInterest),
+        formatBaht(principal),
+        Number(years).toFixed(1)
+      ]);
+    });
+
+    new Chart(document.getElementById("debtChart"),{
+      type:"doughnut",
+      data:{labels:labels,datasets:[{data:balances}]},
+      options:{
+        maintainAspectRatio:false,
+        plugins:{legend:{position:"bottom",labels:{color:"white"}}}
+      }
+    });
+
+    document.getElementById("debtTable").innerHTML =
+      createTable(["Debt","Balance","Rate","Payment","Monthly Interest","Principal","Years Left"], tableRows);
+
+  }catch(e){
+    document.getElementById("debtTable").innerHTML =
+      "<div class='error'>Debt data unavailable. Check Debts tab.</div>";
+  }
+}
+
+async function loadCashFlow(){
+  try{
+    const cashData = await fetchSheet(CASH_FLOW_URL);
+    const rows = cashData.table.rows;
+    const latest = rows[rows.length - 1];
+
+    const date = latest.c[0]?.f || latest.c[0]?.v || "";
+    const income = latest.c[1]?.v || 0;
+    const expenses = latest.c[2]?.v || 0;
+    const travel = latest.c[3]?.v || 0;
+    const emergencyContribution = latest.c[4]?.v || 0;
+    const cumulativeBalance = latest.c[5]?.v || 0;
+    const coverage = latest.c[6]?.v || 0;
+    const investments = latest.c[7]?.v || 0;
+    const unallocated = latest.c[8]?.f || "";
+
+    document.getElementById("emergencyCoverage").innerHTML =
+      coverage ? `${Number(coverage).toFixed(1)} months` : "Pending";
+
+    document.getElementById("unallocatedCash").innerHTML =
+      unallocated || "Pending";
+
+    const tableRows = [[
+      date,
+      formatBaht(income),
+      expenses ? formatBaht(expenses) : "Pending",
+      formatBaht(travel),
+      formatBaht(emergencyContribution),
+      formatBaht(cumulativeBalance),
+      coverage ? `${Number(coverage).toFixed(1)} months` : "Pending",
+      formatBaht(investments),
+      unallocated || "Pending"
+    ]];
+
+    document.getElementById("cashFlowTable").innerHTML =
+      createTable(["Date","Income","Expenses","Travel Fund","Emergency Fund","Cumulative Balance","Coverage","Investments","Unallocated Cash %"], tableRows);
+
+  }catch(e){
+    document.getElementById("cashFlowTable").innerHTML =
+      "<div class='error'>Cash flow data unavailable. Check Cash Flow tab.</div>";
+  }
+}
+
+loadDashboard();
+</script>
+</body>
+</html>
