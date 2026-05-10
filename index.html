@@ -336,16 +336,22 @@ async function loadDashboard(){
       const allocationText = row.c[6]?.f || "";
       const allocationRaw = row.c[6]?.v || 0;
       const dailyReturn = row.c[7]?.v || 0;
-      const category = row.c[8]?.v || "";
       const startingCostBasis = row.c[9]?.v || 0;
-      const newContributions = row.c[10]?.v || 0;
-      const costBasis = row.c[11]?.v || 0;
-      const unrealizedGainLoss = row.c[12]?.v || 0;
-      const unrealizedGainLossPctRaw = row.c[13]?.v || 0;
-      const unrealizedGainLossPctText = row.c[13]?.f || formatPercent(unrealizedGainLossPctRaw * 100);
+const category = row.c[8]?.v || "";
+const assetClassValue = row.c[9]?.v || "";
 
-      const asset = assetClass(fund);
-      const color = assetColor(asset);
+const startingCostBasis = row.c[10]?.v || 0;
+const newContributions = row.c[11]?.v || 0;
+const costBasis = row.c[12]?.v || 0;
+
+const unrealizedGainLoss = row.c[13]?.v || 0;
+
+const unrealizedGainLossPctRaw = row.c[14]?.v || 0;
+
+const unrealizedGainLossPctText =
+  row.c[14]?.f || formatPercent(unrealizedGainLossPctRaw * 100);
+
+const asset = assetClassValue || assetClass(fund);
 
       totalPortfolio += totalValue;
       totalCostBasis += costBasis;
