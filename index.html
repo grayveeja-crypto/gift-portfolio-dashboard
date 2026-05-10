@@ -215,6 +215,28 @@ body{
 .cf-key{font-size:12px;color:#94a3b8;margin-bottom:4px}
 .cf-val{font-size:15px;font-weight:bold;color:#e2e8f0}
 
+/* ── Section Divider ── */
+.section-divider{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  margin:40px 0 28px;
+}
+.section-divider::before,
+.section-divider::after{
+  content:"";
+  flex:1;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent);
+}
+.section-divider span{
+  font-size:22px;
+  font-weight:bold;
+  color:#e2e8f0;
+  white-space:nowrap;
+  padding:0 8px;
+}
+
 /* ── Misc ── */
 .footer{margin-top:28px;text-align:center;color:#94a3b8;font-size:13px}
 .error{color:#f87171;padding:20px;font-size:14px}
@@ -384,6 +406,71 @@ body{
   <div class="card chart-card">
     <div class="chart-title">Debt Details</div>
     <div id="debtTable"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       SPENDING TRACKER SECTION
+  ══════════════════════════════════════ -->
+  <div class="section-divider">
+    <span>💸 Spending Tracker</span>
+  </div>
+
+  <!-- Spending KPIs -->
+  <div class="kpi-section">
+    <div>
+      <div class="kpi-group-label">📅 Year to Date</div>
+      <div class="top-grid">
+        <div class="card stat-card">
+          <div class="stat-title">YTD Total Spent</div>
+          <div class="stat-value yellow" id="spendYTD">—</div>
+          <div class="stat-sub" id="spendYTDPct">of annual budget</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-title">Data Last Updated</div>
+          <div class="stat-value" id="spendLastUpdated" style="font-size:18px">—</div>
+          <div class="stat-sub">Embedded snapshot</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="kpi-group-label" id="spendCurMonth">Current Month</div>
+      <div class="top-grid">
+        <div class="card stat-card">
+          <div class="stat-title">Total Spent</div>
+          <div class="stat-value" id="spendCurSpent">—</div>
+          <div class="stat-sub">This month</div>
+        </div>
+        <div class="card stat-card">
+          <div class="stat-title">Budget Remaining</div>
+          <div class="stat-value" id="spendCurLeft">—</div>
+          <div class="stat-sub">vs ฿70,400 budget</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spending Charts -->
+  <div class="double-grid">
+    <div class="card chart-card">
+      <div class="chart-title">Monthly Spent vs Budget</div>
+      <div class="chart-wrapper history-wrapper"><canvas id="spendBarChart"></canvas></div>
+    </div>
+    <div class="card chart-card">
+      <div class="chart-title">Current Month by Category</div>
+      <div class="chart-wrapper history-wrapper"><canvas id="spendDonutChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- Category Breakdown Table -->
+  <div class="card chart-card">
+    <div class="chart-title">Category Breakdown — Current Month</div>
+    <div id="spendCatTable"></div>
+  </div>
+
+  <!-- Over/Under Table -->
+  <div class="card chart-card">
+    <div class="chart-title">Monthly Budget vs Actual</div>
+    <div id="spendOverUnder"></div>
   </div>
 
   <!-- ── Fund Cards ── -->
@@ -988,10 +1075,258 @@ async function loadCashFlow(){
   }
 }
 
+/* ═════════════════════════════════════════
+   SPENDING TRACKER
+   ─────────────────────────────────────────
+   HOW TO CONNECT LIVE DATA (one-time setup):
+   1. Open your spending sheet
+   2. Extensions → Apps Script → paste the
+      script from the comment below → Deploy
+      as Web App (Anyone) → copy the URL
+   3. Set APPS_SCRIPT_URL to that URL
+   4. Set USE_LIVE_DATA = true
+   ─────────────────────────────────────────
+   APPS SCRIPT TO PASTE:
+   ─────────────────────────────────────────
+   function doGet() {
+     const ss = SpreadsheetApp.getActiveSpreadsheet();
+     const sh = ss.getSheetByName("Annual Summary");
+     const data = sh.getDataRange().getValues();
+     return ContentService
+       .createTextOutput(JSON.stringify(data))
+       .setMimeType(ContentService.MimeType.JSON);
+   }
+   ─────────────────────────────────────────
+═════════════════════════════════════════ */
+
+/* ── Live CSV URL from published Google Sheet ── */
+const SPENDING_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRLIlyo_UoqW4gQ8pB0my1FUwiOBt-BcONnpTlHRBbacM9fY9ZnfNw9Q6sSoBcnGkAZe1atykfeum28/pub?output=csv";
+
+/* Parse CSV text into rows/cols */
+function parseCSV(text){
+  const rows = [];
+  let cur = "", inQ = false, row = [];
+  for(let i = 0; i < text.length; i++){
+    const ch = text[i];
+    if(ch === '"'){ inQ = !inQ; }
+    else if(ch === ',' && !inQ){ row.push(cur.trim()); cur = ""; }
+    else if((ch === '\n' || ch === '\r') && !inQ){
+      row.push(cur.trim()); rows.push(row); row = []; cur = "";
+      if(ch === '\r' && text[i+1] === '\n') i++;
+    } else { cur += ch; }
+  }
+  if(cur || row.length) { row.push(cur.trim()); rows.push(row); }
+  return rows;
+}
+
+function toNum(s){ return parseFloat(String(s).replace(/,/g,"").replace(/[^0-9.-]/g,"")) || 0; }
+
+/* Parse CSV rows into spending data shape */
+function parseLiveCSV(rows){
+  // Row 0: title, Row 1: subtitle, Row 2: header (CATEGORY | JAN 2026 | FEB ... | TOTAL)
+  // Rows 3+: data. Skip Jan(col1),Feb(col2),Mar(col3) — start from Apr(col4)
+  const SKIP   = 3; // skip first 3 month columns (Jan Feb Mar)
+  const MONTHS = ["Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+  const months=[],budget=[],totalSpent=[],categories=[];
+
+  // detect how many month cols exist from header row
+  const hdr = rows[2] || [];
+  let numMonths = 0;
+  for(let c = SKIP+1; c < hdr.length - 1; c++){
+    if(hdr[c] && !String(hdr[c]).toUpperCase().includes("TOTAL")) numMonths++;
+  }
+  numMonths = Math.min(numMonths, 9); // Apr–Dec = 9 months max
+
+  for(let m = 0; m < numMonths; m++) months.push(MONTHS[m]);
+
+  for(let r = 3; r < rows.length; r++){
+    const row   = rows[r];
+    const label = String(row[0]||"").trim();
+    if(!label) continue;
+
+    // cols SKIP+1 .. SKIP+numMonths are Apr..Dec
+    const vals = [];
+    for(let m = 0; m < numMonths; m++) vals.push(toNum(row[SKIP + 1 + m]));
+
+    const lup = label.toUpperCase();
+    if(lup.includes("TOTAL SPENT"))      totalSpent.push(...vals);
+    else if(lup === "BUDGET")            budget.push(...vals);
+    else if(
+      !lup.includes("ANNUAL") &&
+      !lup.includes("ACTUAL SPENDING") &&
+      !lup.includes("CATEGORY") &&
+      !lup.includes("OVER") &&
+      !lup.startsWith("💰")
+    ){ categories.push({name:label, values:vals}); }
+  }
+
+  // Pad arrays to 9 if sheet has fewer months so far
+  while(totalSpent.length < 9) totalSpent.push(0);
+  while(budget.length    < 9) budget.push(0);
+  categories.forEach(c=>{ while(c.values.length<9) c.values.push(0); });
+
+  return { months, budget, totalSpent, categories, lastUpdated:"Live ✅" };
+}
+
+/* Fallback snapshot in case fetch fails */
+const SPENDING_FALLBACK = {
+  months:     ["Apr","May"],
+  budget:     [70400,70400],
+  totalSpent: [44543,75145],
+  categories: [
+    {name:"🏠 Housing",      values:[10800,10800]},
+    {name:"🌐 Internet",     values:[608,608]},
+    {name:"📱 Phone",        values:[1027,1027]},
+    {name:"👩 Mom",          values:[8500,8500]},
+    {name:"📺 Subscriptions",values:[349,349]},
+    {name:"💳 Installment",  values:[1532,1532]},
+    {name:"🐱 Cat",          values:[0,658]},
+    {name:"⛽ Gas",           values:[919,1000]},
+    {name:"🍜 Food",          values:[19699,5462]},
+    {name:"🎌 Japan Fund",    values:[0,15000]},
+    {name:"📈 Retirement",    values:[0,20000]},
+    {name:"🛟 Emergency",     values:[0,8000]},
+    {name:"Misc",             values:[1109,2209]}
+  ],
+  lastUpdated:"May 2026 (snapshot)"
+};
+
+async function getSpendingData(){
+  try{
+    const res  = await fetch(SPENDING_CSV_URL);
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+    const rows = parseCSV(text);
+    return parseLiveCSV(rows);
+  }catch(e){
+    console.warn("Live spending fetch failed, using fallback:", e);
+    return SPENDING_FALLBACK;
+  }
+}
+
+async function renderSpending(){
+  const S = await getSpendingData();
+
+  /* ── Current month = last month with spend > 0 ── */
+  const lastActiveIdx = [...S.totalSpent].reverse().findIndex(v=>v>0);
+  const curIdx   = lastActiveIdx === -1 ? 0 : S.totalSpent.length - 1 - lastActiveIdx;
+  const curSpent  = S.totalSpent[curIdx];
+  const curBudget = S.budget[curIdx];
+  const curLeft   = curBudget - curSpent;
+  const curOver   = curSpent > curBudget;
+
+  /* ── YTD uses only months with data (non-zero budget) ── */
+  const ytdSpent  = S.totalSpent.reduce((a,b)=>a+b,0);
+  const ytdBudget = S.budget.slice(0, curIdx+1).reduce((a,b)=>a+b,0);
+  const ytdPct    = ytdBudget > 0 ? (ytdSpent/ytdBudget*100).toFixed(1) : 0;
+
+  /* ── KPI cards ── */
+  document.getElementById("spendYTD").textContent      = formatBaht(ytdSpent);
+  document.getElementById("spendYTDPct").textContent   = `${ytdPct}% of Apr–${S.months[curIdx]} budget`;
+  document.getElementById("spendCurMonth").textContent = (S.months[curIdx]||"") + " 2026";
+  document.getElementById("spendLastUpdated").textContent = S.lastUpdated;
+
+  const spentEl = document.getElementById("spendCurSpent");
+  spentEl.textContent = formatBaht(curSpent);
+  spentEl.className   = `stat-value ${curOver ? "red" : "green"}`;
+
+  const leftEl = document.getElementById("spendCurLeft");
+  leftEl.textContent = `${curOver ? "Over by " : ""}${formatBaht(Math.abs(curLeft))}`;
+  leftEl.className   = `stat-value ${curOver ? "red" : "green"}`;
+
+  /* ── Months to show = Apr up to current ── */
+  const showLabels = S.months.slice(0, curIdx+1);
+  const showSpent  = S.totalSpent.slice(0, curIdx+1);
+  const showBudget = S.budget.slice(0, curIdx+1);
+
+  /* ── Monthly Spent vs Budget bar chart ── */
+  destroyChart("spendBar");
+  charts.spendBar = new Chart(document.getElementById("spendBarChart"),{
+    type:"bar",
+    data:{
+      labels: showLabels,
+      datasets:[
+        {
+          label:"Spent",
+          data: showSpent,
+          backgroundColor: showSpent.map((v,i)=> v > showBudget[i] ? "#ef4444" : "#38bdf8"),
+          borderRadius:6, borderWidth:0
+        },
+        {
+          label:"Budget",
+          data: showBudget,
+          backgroundColor:"rgba(255,255,255,0.08)",
+          borderColor:"rgba(255,255,255,0.25)",
+          borderWidth:1, borderRadius:6
+        }
+      ]
+    },
+    options:{
+      maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:"white"}}},
+      scales:{
+        x:{ticks:{color:"white"}, grid:{color:"rgba(255,255,255,0.07)"}},
+        y:{ticks:{color:"white", callback:v=>`฿${(v/1000).toFixed(0)}k`}, grid:{color:"rgba(255,255,255,0.07)"}}
+      }
+    }
+  });
+
+  /* ── Current month category donut ── */
+  const catLabels = S.categories.filter(c=>c.values[curIdx]>0).map(c=>c.name);
+  const catValues = S.categories.filter(c=>c.values[curIdx]>0).map(c=>c.values[curIdx]);
+
+  destroyChart("spendDonut");
+  charts.spendDonut = new Chart(document.getElementById("spendDonutChart"),{
+    type:"doughnut",
+    data:{
+      labels: catLabels,
+      datasets:[{
+        data: catValues,
+        backgroundColor: PALETTE,
+        borderWidth:2, borderColor:"rgba(0,0,0,0.25)"
+      }]
+    },
+    options:{
+      maintainAspectRatio:false,
+      plugins:{legend:{position:"bottom",labels:{color:"white",padding:10,font:{size:11}}}}
+    }
+  });
+
+  /* ── Category breakdown table — current month ── */
+  const tableRows = S.categories
+    .map(c=>({name:c.name, spent:c.values[curIdx]}))
+    .filter(c=>c.spent>0)
+    .sort((a,b)=>b.spent-a.spent)
+    .map(c=>{
+      const pct = curSpent>0 ? (c.spent/curSpent*100).toFixed(1) : 0;
+      const bar = `<div style="height:6px;background:rgba(255,255,255,0.1);border-radius:999px;margin-top:4px;overflow:hidden">
+        <div style="height:100%;width:${pct}%;background:#38bdf8;border-radius:999px"></div></div>`;
+      return [c.name, formatBaht(c.spent), `${pct}%`, bar];
+    });
+  document.getElementById("spendCatTable").innerHTML =
+    createTable(["Category","Amount","% of Month",""], tableRows);
+
+  /* ── Over/Under table — Apr to current ── */
+  const overUnderRows = showLabels.map((m,i)=>{
+    const diff = showSpent[i] - showBudget[i];
+    return [
+      m+" 2026",
+      formatBaht(showSpent[i]),
+      formatBaht(showBudget[i]),
+      `<span class="${diff>0?"red":"green"}">${diff>=0?"+":""}${formatBaht(diff)}</span>`,
+      `<span class="${diff>0?"red":"green"}">${diff>0?"⚠️ Over":"✅ Under"}</span>`
+    ];
+  });
+  document.getElementById("spendOverUnder").innerHTML =
+    createTable(["Month","Spent","Budget","Difference","Status"], overUnderRows);
+}
+
 /* ─────────────────────────────────────────
    BOOT
 ───────────────────────────────────────── */
 loadDashboard();
+renderSpending();
 </script>
 </body>
 </html>
