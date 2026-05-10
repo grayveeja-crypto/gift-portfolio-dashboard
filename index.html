@@ -12,7 +12,7 @@
 body{
   font-family:Arial,sans-serif;
   background:
-    radial-gradient(circle at top left, rgba(59,130,246,0.20), transparent 30%),
+    radial-gradient(circle at top left, rgba(59,130,246,0.18), transparent 30%),
     linear-gradient(135deg,#020617,#0f172a,#1e293b);
   color:white;
   padding:24px;
@@ -22,8 +22,15 @@ body{
 .container{max-width:1500px;margin:auto}
 
 .header{margin-bottom:28px}
-.header h1{font-size:42px;margin-bottom:8px}
-.header p{color:#cbd5e1}
+
+.header h1{
+  font-size:42px;
+  margin-bottom:8px;
+}
+
+.header p{
+  color:#cbd5e1;
+}
 
 .top-grid{
   display:grid;
@@ -40,17 +47,40 @@ body{
   box-shadow:0 20px 40px rgba(0,0,0,0.25);
 }
 
-.stat-card{padding:22px}
-.stat-title{color:#cbd5e1;font-size:13px;margin-bottom:10px}
-.stat-value{font-size:24px;font-weight:bold}
-.stat-sub{margin-top:8px;color:#94a3b8;font-size:13px}
+.stat-card{
+  padding:22px;
+}
+
+.stat-title{
+  color:#cbd5e1;
+  font-size:13px;
+  margin-bottom:10px;
+}
+
+.stat-value{
+  font-size:24px;
+  font-weight:bold;
+}
+
+.stat-sub{
+  margin-top:8px;
+  color:#94a3b8;
+  font-size:13px;
+}
 
 .green{color:#22c55e}
 .red{color:#ef4444}
-.blue{color:#38bdf8}
 
-.chart-card{padding:20px;margin-bottom:24px}
-.chart-title{font-size:18px;margin-bottom:18px;font-weight:bold}
+.chart-card{
+  padding:20px;
+  margin-bottom:24px;
+}
+
+.chart-title{
+  font-size:18px;
+  margin-bottom:18px;
+  font-weight:bold;
+}
 
 .chart-grid{
   display:grid;
@@ -64,16 +94,23 @@ body{
   height:340px;
 }
 
-.history-wrapper{height:390px}
-.small{height:280px}
+.history-wrapper{
+  height:390px;
+}
+
+.small{
+  height:280px;
+}
 
 .fund-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
   gap:18px;
 }
 
-.fund-card{padding:18px}
+.fund-card{
+  padding:18px;
+}
 
 .fund-top{
   display:flex;
@@ -83,14 +120,17 @@ body{
   margin-bottom:14px;
 }
 
-.fund-name{font-size:18px;font-weight:bold;line-height:1.3}
+.fund-name{
+  font-size:18px;
+  font-weight:bold;
+  line-height:1.3;
+}
 
 .badge{
   padding:5px 8px;
   border-radius:999px;
   font-size:11px;
   background:rgba(255,255,255,0.12);
-  white-space:nowrap;
 }
 
 .row{
@@ -102,8 +142,6 @@ body{
   gap:10px;
 }
 
-.row strong{text-align:right}
-
 .allocation-bar{
   height:10px;
   background:rgba(255,255,255,0.12);
@@ -112,7 +150,10 @@ body{
   margin-top:12px;
 }
 
-.fill{height:100%;border-radius:999px}
+.fill{
+  height:100%;
+  border-radius:999px;
+}
 
 .footer{
   margin-top:28px;
@@ -127,15 +168,29 @@ body{
 }
 
 @media(max-width:900px){
-  body{padding:16px}
-  .header h1{font-size:30px}
-  .chart-grid{grid-template-columns:1fr}
-  .history-wrapper{height:320px}
+
+  body{
+    padding:16px;
+  }
+
+  .header h1{
+    font-size:30px;
+  }
+
+  .chart-grid{
+    grid-template-columns:1fr;
+  }
+
+  .history-wrapper{
+    height:320px;
+  }
+
 }
 </style>
 </head>
 
 <body>
+
 <div class="container">
 
   <div class="header">
@@ -185,6 +240,7 @@ body{
 
   <div class="card chart-card">
     <div class="chart-title">Portfolio Growth History</div>
+
     <div class="chart-wrapper history-wrapper">
       <canvas id="historyChart"></canvas>
     </div>
@@ -193,7 +249,8 @@ body{
   <div class="chart-grid">
 
     <div class="card chart-card">
-      <div class="chart-title">Portfolio Allocation</div>
+      <div class="chart-title">Asset Allocation</div>
+
       <div class="chart-wrapper">
         <canvas id="allocationChart"></canvas>
       </div>
@@ -201,6 +258,7 @@ body{
 
     <div class="card chart-card">
       <div class="chart-title">Personal vs Retirement</div>
+
       <div class="chart-wrapper small">
         <canvas id="categoryChart"></canvas>
       </div>
@@ -217,42 +275,15 @@ body{
 </div>
 
 <script>
-const SHEET_ID = "11rbwXYqXhJrXG7oWQS3pl5fHiXXWtNpsxgN7TbIc6UQ";
+
+const SHEET_ID =
+"11rbwXYqXhJrXG7oWQS3pl5fHiXXWtNpsxgN7TbIc6UQ";
 
 const MAIN_URL =
 `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
 
 const HISTORY_URL =
 `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=History&tqx=out:json`;
-
-function shortName(name){
-  return String(name)
-    .replace("UNITED GLOBAL DURABLE EQUITIES FUND M11UGD","M11UGD")
-    .replace("UNITED GLOBAL BALANCED FUND M10UGBF","M10UGBF")
-    .replace("UNITED GLOBAL INCOME STRATEGIC BOND FUND M12UGIS","M12UGIS")
-    .replace("UOB PERMPOONSUB (FIXED INCOME) M02FI","M02FI")
-    .replace("UOB SMART GOLD FUND M07SG","M07SG")
-    .replace("SCBRMWORLD(A)","SCBRMWORLD");
-}
-
-function assetClass(name){
-  const n = String(name).toUpperCase();
-
-  if(n.includes("GOLD")) return "Gold";
-  if(n.includes("BOND") || n.includes("FIXED") || n.includes("SFF")) return "Fixed Income";
-  if(n.includes("BALANCED")) return "Balanced";
-  if(n.includes("WORLD") || n.includes("S&P") || n.includes("EQUITIES") || n.includes("RM2")) return "Equity";
-
-  return "Other";
-}
-
-function assetColor(asset){
-  if(asset==="Equity") return "#38bdf8";
-  if(asset==="Fixed Income") return "#22c55e";
-  if(asset==="Gold") return "#facc15";
-  if(asset==="Balanced") return "#a78bfa";
-  return "#94a3b8";
-}
 
 function formatBaht(v){
   return Number(v).toLocaleString("en-US",{
@@ -268,113 +299,135 @@ function formatNumber(v){
   });
 }
 
-function formatPercent(v){
-  return Number(v).toFixed(2) + "%";
+function shortName(name){
+
+  return String(name)
+    .replace("UNITED GLOBAL DURABLE EQUITIES FUND M11UGD","M11UGD")
+    .replace("UNITED GLOBAL BALANCED FUND M10UGBF","M10UGBF")
+    .replace("UNITED GLOBAL INCOME STRATEGIC BOND FUND M12UGIS","M12UGIS")
+    .replace("UOB PERMPOONSUB (FIXED INCOME) M02FI","M02FI")
+    .replace("UOB SMART GOLD FUND M07SG","M07SG")
+    .replace("SCBRMWORLD(A)","SCBRMWORLD");
+
 }
 
 async function fetchSheet(url){
+
   const res = await fetch(url);
   const text = await res.text();
-  const jsonText = text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1);
+
+  const jsonText =
+    text.substring(
+      text.indexOf("{"),
+      text.lastIndexOf("}") + 1
+    );
+
   return JSON.parse(jsonText);
+
 }
 
 function isPersonal(category){
-  return String(category).toLowerCase().includes("personal");
+
+  return String(category)
+    .toLowerCase()
+    .includes("personal");
+
 }
 
 function isRetirement(category){
+
   const c = String(category).toLowerCase();
-  return c.includes("retirement") || c.includes("pvd") || c.includes("provident");
+
+  return c.includes("retirement");
+
 }
 
 async function loadDashboard(){
-  try{
-    const mainData = await fetchSheet(MAIN_URL);
-    const rows = mainData.table.rows;
 
-    const labels = [];
-    const values = [];
-    const colors = [];
+  try{
+
+    const mainData =
+      await fetchSheet(MAIN_URL);
+
+    const rows =
+      mainData.table.rows;
 
     let totalPortfolio = 0;
     let personalValue = 0;
     let retirementValue = 0;
-    let weightedReturn = 0;
-    let totalCostBasis = 0;
     let totalGainLoss = 0;
+    let totalCostBasis = 0;
+    let weightedReturn = 0;
 
-    const grid = document.getElementById("fundGrid");
-    grid.innerHTML = "";
+    const assetMap = {};
+
+    const fundGrid =
+      document.getElementById("fundGrid");
+
+    fundGrid.innerHTML = "";
 
     rows.forEach(row=>{
 
-      /*
-        NEW GOOGLE SHEET STRUCTURE:
-        A Fund code
-        B Starting Units
-        C New Units
-        D Units
-        E NAV
-        F Total Value
-        G Allocation %
-        H Daily Return %
-        I Category
-        J Starting Cost Basis
-        K New Contributions
-        L Cost Basis
-        M Unrealized Gain/Loss
-        N Unrealized Gain/Loss %
-      */
-
       const fund = row.c[0]?.v || "";
-      const startingUnits = row.c[1]?.v || 0;
-      const newUnits = row.c[2]?.v || 0;
+
       const units = row.c[3]?.v || 0;
       const nav = row.c[4]?.v || 0;
       const totalValue = row.c[5]?.v || 0;
-      const allocationText = row.c[6]?.f || "";
-      const allocationRaw = row.c[6]?.v || 0;
-      const dailyReturn = row.c[7]?.v || 0;
-      const startingCostBasis = row.c[9]?.v || 0;
-const category = row.c[8]?.v || "";
-const assetClassValue = row.c[9]?.v || "";
 
-const startingCostBasis = row.c[10]?.v || 0;
-const newContributions = row.c[11]?.v || 0;
-const costBasis = row.c[12]?.v || 0;
+      const allocationText =
+        row.c[6]?.f || "";
 
-const unrealizedGainLoss = row.c[13]?.v || 0;
+      const allocationRaw =
+        row.c[6]?.v || 0;
 
-const unrealizedGainLossPctRaw = row.c[14]?.v || 0;
+      const dailyReturn =
+        row.c[7]?.v || 0;
 
-const unrealizedGainLossPctText =
-  row.c[14]?.f || formatPercent(unrealizedGainLossPctRaw * 100);
+      const category =
+        row.c[8]?.v || "";
 
-const asset = assetClassValue || assetClass(fund);
+      const assetClass =
+        row.c[9]?.v || "Other";
+
+      const costBasis =
+        row.c[12]?.v || 0;
+
+      const gainLoss =
+        row.c[13]?.v || 0;
+
+      const gainLossPct =
+        row.c[14]?.v || 0;
 
       totalPortfolio += totalValue;
+      totalGainLoss += gainLoss;
       totalCostBasis += costBasis;
-      totalGainLoss += unrealizedGainLoss;
 
-      weightedReturn += allocationRaw * (dailyReturn / 100);
+      weightedReturn +=
+        allocationRaw * (dailyReturn / 100);
 
-      if(isPersonal(category)) personalValue += totalValue;
-      if(isRetirement(category)) retirementValue += totalValue;
+      if(isPersonal(category))
+        personalValue += totalValue;
 
-      labels.push(shortName(fund));
-      values.push(totalValue);
-      colors.push(color);
+      if(isRetirement(category))
+        retirementValue += totalValue;
 
-      const returnClass = dailyReturn >= 0 ? "green" : "red";
-      const gainLossClass = unrealizedGainLoss >= 0 ? "green" : "red";
+      if(!assetMap[assetClass])
+        assetMap[assetClass] = 0;
 
-      grid.innerHTML += `
+      assetMap[assetClass] += totalValue;
+
+      const returnClass =
+        dailyReturn >= 0 ? "green" : "red";
+
+      const gainClass =
+        gainLoss >= 0 ? "green" : "red";
+
+      fundGrid.innerHTML += `
         <div class="card fund-card">
 
           <div class="fund-top">
             <div class="fund-name">${shortName(fund)}</div>
-            <div class="badge">${category || asset}</div>
+            <div class="badge">${assetClass}</div>
           </div>
 
           <div class="row">
@@ -399,15 +452,15 @@ const asset = assetClassValue || assetClass(fund);
 
           <div class="row">
             <span>Unrealized G/L</span>
-            <strong class="${gainLossClass}">
-              ${unrealizedGainLoss >= 0 ? "+" : ""}${formatBaht(unrealizedGainLoss)}
+            <strong class="${gainClass}">
+              ${gainLoss >= 0 ? "+" : ""}${formatBaht(gainLoss)}
             </strong>
           </div>
 
           <div class="row">
-            <span>Unrealized G/L %</span>
-            <strong class="${gainLossClass}">
-              ${unrealizedGainLoss >= 0 ? "+" : ""}${unrealizedGainLossPctText}
+            <span>Return %</span>
+            <strong class="${gainClass}">
+              ${gainLossPct >= 0 ? "+" : ""}${(gainLossPct*100).toFixed(2)}%
             </strong>
           </div>
 
@@ -424,11 +477,17 @@ const asset = assetClassValue || assetClass(fund);
           </div>
 
           <div class="allocation-bar">
-            <div class="fill" style="width:${allocationRaw * 100}%; background:${color};"></div>
+            <div class="fill"
+              style="
+                width:${allocationRaw*100}%;
+                background:#38bdf8;
+              ">
+            </div>
           </div>
 
         </div>
       `;
+
     });
 
     document.getElementById("totalPortfolio").innerHTML =
@@ -440,173 +499,103 @@ const asset = assetClassValue || assetClass(fund);
     document.getElementById("retirementValue").innerHTML =
       formatBaht(retirementValue);
 
-    const movement = weightedReturn * 100;
-    const movementEl = document.getElementById("dailyMovement");
+    const movement =
+      weightedReturn * 100;
+
+    const movementEl =
+      document.getElementById("dailyMovement");
 
     movementEl.innerHTML =
       `${movement >= 0 ? "+" : ""}${movement.toFixed(2)}%`;
 
     movementEl.className =
-      `stat-value ${movement >= 0 ? "green" : "red"}`;
+      `stat-value ${movement >=0 ? "green" : "red"}`;
 
-    const gainLossPct =
-      totalCostBasis > 0 ? (totalGainLoss / totalCostBasis) * 100 : 0;
+    const totalReturnPct =
+      totalCostBasis > 0
+      ? (totalGainLoss / totalCostBasis) * 100
+      : 0;
 
-    const totalGainLossEl =
+    const gainEl =
       document.getElementById("totalGainLoss");
 
-    totalGainLossEl.innerHTML =
-      `${totalGainLoss >= 0 ? "+" : ""}${formatBaht(totalGainLoss)}`;
+    gainEl.innerHTML =
+      `${totalGainLoss >=0 ? "+" : ""}${formatBaht(totalGainLoss)}`;
 
-    totalGainLossEl.className =
-      `stat-value ${totalGainLoss >= 0 ? "green" : "red"}`;
+    gainEl.className =
+      `stat-value ${totalGainLoss >=0 ? "green" : "red"}`;
 
     document.getElementById("totalGainLossPct").innerHTML =
-      `${gainLossPct >= 0 ? "+" : ""}${gainLossPct.toFixed(2)}% total return`;
+      `${totalReturnPct >=0 ? "+" : ""}${totalReturnPct.toFixed(2)}% total return`;
 
     document.getElementById("lastUpdated").innerHTML =
-      new Date().toLocaleString("en-US", {
-        dateStyle: "medium",
-        timeStyle: "short"
+      new Date().toLocaleString("en-US",{
+        dateStyle:"medium",
+        timeStyle:"short"
       });
 
-    new Chart(document.getElementById("allocationChart"),{
-      type:"bar",
-      data:{
-        labels:labels,
-        datasets:[{
-          label:"Portfolio Value",
-          data:values,
-          backgroundColor:colors,
-          borderRadius:8
-        }]
-      },
-      options:{
-        maintainAspectRatio:false,
-        plugins:{
-          legend:{labels:{color:"white"}},
-          tooltip:{
-            callbacks:{
-              label:function(context){
-                return formatBaht(context.raw);
-              }
-            }
-          }
-        },
-        scales:{
-          x:{
-            ticks:{color:"white",maxRotation:35,minRotation:20},
-            grid:{color:"rgba(255,255,255,0.08)"}
-          },
-          y:{
-            ticks:{
-              color:"white",
-              callback:function(value){
-                return Number(value).toLocaleString("en-US");
-              }
-            },
-            grid:{color:"rgba(255,255,255,0.08)"}
-          }
-        }
-      }
-    });
-
-    new Chart(document.getElementById("categoryChart"),{
-      type:"doughnut",
-      data:{
-        labels:["Personal","Retirement"],
-        datasets:[{
-          data:[personalValue,retirementValue],
-          backgroundColor:["#38bdf8","#22c55e"]
-        }]
-      },
-      options:{
-        maintainAspectRatio:false,
-        cutout:"60%",
-        plugins:{
-          legend:{
-            position:"bottom",
-            labels:{color:"white"}
-          },
-          tooltip:{
-            callbacks:{
-              label:function(context){
-                return `${context.label}: ${formatBaht(context.raw)}`;
-              }
-            }
-          }
-        }
-      }
-    });
-
-    try{
-      const historyData = await fetchSheet(HISTORY_URL);
-      const historyRows = historyData.table.rows;
-
-      const historyDates = [];
-      const historyValues = [];
-
-      historyRows.forEach(r=>{
-        historyDates.push(r.c[0]?.f || r.c[0]?.v || "");
-        historyValues.push(r.c[1]?.v || 0);
-      });
-
-      new Chart(document.getElementById("historyChart"),{
-        type:"line",
+    new Chart(
+      document.getElementById("allocationChart"),
+      {
+        type:"doughnut",
         data:{
-          labels:historyDates,
+          labels:Object.keys(assetMap),
           datasets:[{
-            label:"Portfolio Value",
-            data:historyValues,
-            borderColor:"#38bdf8",
-            backgroundColor:"rgba(56,189,248,0.15)",
-            fill:true,
-            tension:0.35
+            data:Object.values(assetMap)
           }]
         },
         options:{
           maintainAspectRatio:false,
           plugins:{
-            legend:{labels:{color:"white"}},
-            tooltip:{
-              callbacks:{
-                label:function(context){
-                  return formatBaht(context.raw);
-                }
-              }
-            }
-          },
-          scales:{
-            x:{
-              ticks:{color:"white"},
-              grid:{color:"rgba(255,255,255,0.08)"}
-            },
-            y:{
-              ticks:{
-                color:"white",
-                callback:function(value){
-                  return Number(value).toLocaleString("en-US");
-                }
-              },
-              grid:{color:"rgba(255,255,255,0.08)"}
+            legend:{
+              position:"bottom",
+              labels:{color:"white"}
             }
           }
         }
-      });
+      }
+    );
 
-    }catch(historyError){
-      document.getElementById("historyChart").parentElement.innerHTML =
-        "<div class='error'>History chart not available yet. Check History tab.</div>";
-    }
+    new Chart(
+      document.getElementById("categoryChart"),
+      {
+        type:"doughnut",
+        data:{
+          labels:["Personal","Retirement"],
+          datasets:[{
+            data:[personalValue,retirementValue]
+          }]
+        },
+        options:{
+          maintainAspectRatio:false,
+          cutout:"60%",
+          plugins:{
+            legend:{
+              position:"bottom",
+              labels:{color:"white"}
+            }
+          }
+        }
+      }
+    );
 
   }catch(error){
-    document.getElementById("totalPortfolio").innerHTML = "Error";
+
+    document.getElementById("totalPortfolio").innerHTML =
+      "Error";
+
     document.getElementById("fundGrid").innerHTML =
-      `<div class="card error">Dashboard error: ${error.message}</div>`;
+      `<div class="card error">
+        Dashboard error:
+        ${error.message}
+      </div>`;
+
   }
+
 }
 
 loadDashboard();
+
 </script>
 </body>
 </html>
